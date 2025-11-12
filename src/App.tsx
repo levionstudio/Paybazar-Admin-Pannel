@@ -8,7 +8,6 @@ import { LoginPage } from "./pages/admin/LoginPage";
 import { AdminLayout } from "./components/admin/AdminLayout";
 import { Dashboard } from "./components/admin/Dashboard";
 import { UserManagement } from "./components/admin/UserManagement";
-import { TransactionLogs } from "./components/admin/TransactionLogs";
 import { CommissionSystem } from "./components/admin/CommissionSystem";
 import { KYCVerification } from "./components/admin/KYCVerification";
 import { APIManagement } from "./components/admin/APIManagement";
@@ -17,7 +16,6 @@ import { Security } from "./components/admin/Security";
 import { Analytics } from "./components/admin/Analytics";
 import { ActivityLogs } from "./components/admin/ActivityLog";
 import { SupportQueries } from "./components/admin/Support";
-import { OtpPage } from "./pages/admin/Otp";
 import paybazaarLogo from "./assets/paybazaar-logo.png";
 import CreateDistributorPage from "./components/admin/CreateMAsterDistributor";
 import { FundRequest } from "./components/admin/AdminFundRequest";
@@ -78,10 +76,10 @@ const App = () => {
               <Route path="funds/request" element={<FundRequest />} />
               <Route path="users" element={<UserManagement />} />
               <Route
-                path="create-distributor"
+                path="create/create-distributor"
                 element={<CreateDistributorPage />}
               />
-              {/* <Route path="logs" element={<TransactionLogs />} /> */}
+              {/* <Route path="logs/t" element={<TransactionLogs />} /> */}
               <Route path="commission" element={<CommissionSystem />} />
               <Route path="wallet" element={<WalletTopUp />} />
               <Route path="kyc" element={<KYCVerification />} />

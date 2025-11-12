@@ -30,11 +30,8 @@ export function Header({ onMenuClick }: HeaderProps) {
   const location = useLocation();
 
   useEffect(() => {
-    if (location.pathname === "/admin/funds/request") {
-      setHideBalance(true);
-    }
-  }, [location]);
-
+    setHideBalance(location.pathname === "/admin/funds/request");
+  }, [location.pathname]);
   
 
   const getAdminId = (): string | null => {

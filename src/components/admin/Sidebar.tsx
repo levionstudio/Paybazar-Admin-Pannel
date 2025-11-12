@@ -45,11 +45,11 @@ const navigation = [
 const navigations = [
   { name: "Transaction Logs", href: "/admin/logs", icon: FileText },
   // { name: 'Commission System', href: '/admin/commission', icon: DollarSign },
-  {
-    name: "Create Distributor",
-    href: "/admin/create-distributor",
-    icon: UserCheck,
-  },
+  // {
+  //   name: "Create Distributor",
+  //   href: "/admin/create-distributor",
+  //   icon: UserCheck,
+  // },
   // { name: 'KYC Verification', href: '/admin/kyc', icon: UserCheck },
   // { name: 'API Management', href: '/admin/api', icon: CreditCard },
   // { name: 'Support Queries', href: '/admin/support', icon: HelpCircle },
@@ -58,6 +58,13 @@ const navigations = [
   // { name: 'Security', href: '/admin/security', icon: Shield },
   { name: "Wallet Top Up", href: "/admin/wallet", icon: Wallet },
 ];
+
+const create = [
+  { name: "Distributor", href: "/admin/create/create-distributor", icon: UserCheck },
+  { name: "Distributor", href: "/admin/create/create-distributor", icon: UserCheck },
+  { name: "Distributor", href: "/admin/create/create-distributor", icon: UserCheck },
+
+]
 
 const fundsSubMenu = [
   // { name: 'E-Wallet History', href: '/admin/funds/history', icon: History },
@@ -78,6 +85,8 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
   const [adminDetails, setAdminDetails] = useState<any>({});
   const location = useLocation();
   const [fundsExpanded, setFundsExpanded] = useState(false);
+  const [createExpanded, setCreateExpanded] = useState(false);
+
 
   const isActive = (path: string) => {
     if (path === "/admin") {
@@ -102,6 +111,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
   }, []);
 
   const isFundsActive = location.pathname.startsWith("/admin/funds");
+  const isCreateActive = location.pathname.startsWith("/admin/create");
 
   return (
     <>
@@ -229,8 +239,12 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                       </NavLink>
                     );
                   })}
+
+                  
                 </div>
               )}
+
+             
               {navigations.map((item) => {
                 const Icon = item.icon;
                 return (
@@ -253,10 +267,74 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                           : "text-muted-foreground group-hover:text-secondary-foreground"
                       )}
                     />
-                    {item.name}
+                    {item.name} 
                   </NavLink>
                 );
               })}
+
+                {/* Funds Dropdown */}
+              <button
+                onClick={() => setCreateExpanded(!createExpanded)}
+                className={cn(
+                  "group flex items-center justify-between w-full px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200",
+                  isCreateActive
+                    ? "gradient-primary text-primary-foreground shadow-glow"
+                    : "text-muted-foreground hover:bg-secondary hover:text-secondary-foreground"
+                )}
+              >
+                <div className="flex items-center">
+                  <UserCheck
+                    className={cn(
+                      "mr-3 h-5 w-5 flex-shrink-0 transition-colors",
+                      isFundsActive
+                        ? "text-primary-foreground"
+                        : "text-muted-foreground group-hover:text-secondary-foreground"
+                    )}
+                  />
+                  Create
+                </div>
+                {createExpanded ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </button>
+
+              {/* Funds Submenu */}
+              {createExpanded && (
+                <div className="ml-6 space-y-1">
+                  {create.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <NavLink
+                        key={item.name}
+                        to={item.href}
+                        className={cn(
+                          "group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200",
+                          isActive(item.href)
+                            ? "bg-primary/10 text-primary border-l-2 border-primary"
+                            : "text-muted-foreground hover:bg-secondary/50 hover:text-secondary-foreground"
+                        )}
+                        onClick={() => setIsOpen(false)}
+                      >
+                        <Icon
+                          className={cn(
+                            "mr-3 h-4 w-4 flex-shrink-0 transition-colors",
+                            isActive(item.href)
+                              ? "text-primary"
+                              : "text-muted-foreground group-hover:text-secondary-foreground"
+                          )}
+                        />
+                        {item.name}
+                      </NavLink>
+                    );
+                  })}
+
+                  
+                </div>
+              )}
+
+              
             </div>
           </nav>
 
