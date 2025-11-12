@@ -25,23 +25,6 @@ export function LoginPage() {
 
   const navigate = useNavigate();
   const { toast } = useToast();
-  // Add this helper (above the return)
-function getPasswordStrength(pwd: string): { label: "Weak" | "Medium" | "Strong"; score: 0 | 1 | 2 | 3 } {
-  if (!pwd) return { label: "Weak", score: 0 };
-  const hasLower = /[a-z]/.test(pwd);
-  const hasUpper = /[A-Z]/.test(pwd);
-  const hasSpecial = /[^A-Za-z0-9]/.test(pwd);
-  const longEnough = pwd.length >= 8;
-
-  const met = [hasLower, hasUpper, hasSpecial].filter(Boolean).length;
-
-  if (met <= 1 || pwd.length < 6) return { label: "Weak", score: 1 };
-  if (met === 2 || (met === 3 && !longEnough)) return { label: "Medium", score: 2 };
-  return { label: "Strong", score: 3 };
-}
-
-// Inside the component, after your state declarations:
-const strength = getPasswordStrength(password);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -148,49 +131,18 @@ const strength = getPasswordStrength(password);
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className=" pr-9"
+                    className="pl-9 pr-9"
                     required
                   />
-                  <br />
-                  {password && (
-  <div className="space-y-1 pt-1">
-    <div className="h-1.5 w-full bg-muted rounded">
-      <div
-        className={[
-          "h-full rounded transition-all",
-          strength.score === 1 ? "w-1/3 bg-destructive" :
-          strength.score === 2 ? "w-2/3 bg-orange-500" :
-          strength.score === 3 ? "w-full bg-emerald-500" : "w-0"
-        ].join(" ")}
-      />
-    </div>
-    <div className="flex items-center justify-between">
-      <p className="text-xs text-muted-foreground">
-        Password strength:{" "}
-        <span className={[
-          "font-medium",
-          strength.label === "Weak" ? "text-destructive" :
-          strength.label === "Medium" ? "text-orange-500" : "text-emerald-600"
-        ].join(" ")}>
-          {strength.label}
-        </span>
-      </p>
-      {(strength.label !== "Strong") && (
-        <p className="text-[10px] text-muted-foreground">
-          Use uppercase, lowercase, and a special character
-        </p>
-      )}
-    </div>
-  </div>
-)}
                   <div
-                    className="absolute right-5 top-5 -translate-y-1/2 cursor-pointer text-muted-foreground"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-muted-foreground hover:text-primary"
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (

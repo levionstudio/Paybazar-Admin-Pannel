@@ -1,18 +1,28 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-} from "@/components/ui/table";
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { jwtDecode } from "jwt-decode";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+interface MasterDistributor {
+  master_distributor_id: string;
+  master_distributor_unique_id?: string;
+  master_distributor_name?: string;
+  master_distributor_email?: string;
+  master_distributor_phone?: string;
+  master_distributor_wallet_balance?: string;
+}
 
 interface Distributor {
   distributor_id: string;
@@ -24,13 +34,15 @@ interface Distributor {
 }
 
 interface JWTPayload {
-  data?: { admin_id?: string; [key: string]: any };
-  [key: string]: any;
+  data: { admin_id: string; [key: string]: any };
 }
 
 export default function GetAllDistributor() {
+  const [masterDistributors, setMasterDistributors] = useState<MasterDistributor[]>([]);
+  const [selectedMD, setSelectedMD] = useState<string>("");
   const [distributors, setDistributors] = useState<Distributor[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingMDs, setLoadingMDs] = useState(true);
+  const [loadingDistributors, setLoadingDistributors] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -38,100 +50,183 @@ export default function GetAllDistributor() {
     try {
       const token = localStorage.getItem("authToken");
       if (!token) {
-        console.warn("authToken not found in localStorage");
         toast.error("Authentication token not found");
         return null;
       }
-      const decoded = jwtDecode<JWTPayload>(token as string);
-      const adminId =
-        (decoded && (decoded as any).data?.admin_id) ||
-        (decoded && (decoded as any).admin_id) ||
-        null;
-      if (!adminId) {
-        console.warn("admin_id not present in decoded token:", decoded);
-        toast.error("Admin ID not found in token");
-        return null;
-      }
-      return adminId;
-    } catch (err) {
-      console.error("Error decoding token:", err);
+      const decoded = jwtDecode<JWTPayload>(token);
+      return decoded.data.admin_id;
+    } catch (error) {
       toast.error("Invalid authentication token");
       return null;
     }
   };
 
-  const admin_id = getAdminId();
+  const admin_id = useMemo(() => getAdminId(), []);
 
+  // Fetch all MDs on mount
   useEffect(() => {
-    const fetchDistributors = async () => {
+    const fetchMasterDistributors = async () => {
       if (!admin_id) {
-        setLoading(false);
+        setLoadingMDs(false);
         return;
       }
-
-      setLoading(true);
+      setLoadingMDs(true);
       try {
         const token = localStorage.getItem("authToken");
-        const url = `${import.meta.env.VITE_API_BASE_URL}/admin/get/distributor/${admin_id}`;
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_BASE_URL}/admin/get/md/${admin_id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
 
-        console.log("Requesting distributors from:", url);
-        const res = await axios.get(url, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          timeout: 15000,
-        });
+        if (res.data?.status === "success" && res.data?.data) {
+          const list = Array.isArray(res.data.data)
+            ? res.data.data
+            : res.data.data.master_distributors || [];
+          
+          const normalized = list.map((md: any) => ({
+            master_distributor_id: md.master_distributor_id,
+            master_distributor_unique_id: md.master_distributor_unique_id,
+            master_distributor_name: md.master_distributor_name,
+            master_distributor_email: md.master_distributor_email,
+            ...md,
+          }));
 
-        console.log("GET /admin/get/distributor response:", res.status, res.data);
+          setMasterDistributors(normalized);
+          // Auto-select first MD if available
+          if (normalized.length > 0) {
+            setSelectedMD(normalized[0].master_distributor_id);
+          }
+        } else {
+          toast.error("Failed to load master distributors");
+          setMasterDistributors([]);
+        }
+      } catch (error: any) {
+        console.error("Error fetching master distributors:", error);
+        toast.error(error.response?.data?.message || "Failed to load master distributors");
+        setMasterDistributors([]);
+      } finally {
+        setLoadingMDs(false);
+      }
+    };
+
+    fetchMasterDistributors();
+  }, [admin_id]);
+
+  // Fetch distributors when master distributor is selected
+  useEffect(() => {
+    const fetchDistributors = async (mdId: string) => {
+      if (!mdId) {
+        setDistributors([]);
+        return;
+      }
+      setLoadingDistributors(true);
+      setDistributors([]);
+      try {
+        const token = localStorage.getItem("authToken");
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_BASE_URL}/admin/get/distributor/${mdId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
 
         if (res.data?.status === "success" && res.data?.data) {
           const list = Array.isArray(res.data.data)
             ? res.data.data
             : res.data.data.distributors || [];
-          setDistributors(list);
-          setCurrentPage(1);
+          
+          const normalized = list.map((d: any) => ({
+            distributor_id: d.distributor_id,
+            distributor_unique_id: d.distributor_unique_id,
+            distributor_name: d.distributor_name,
+            distributor_email: d.distributor_email,
+            distributor_phone: d.distributor_phone,
+            distributor_wallet_balance: d.distributor_wallet_balance,
+            ...d,
+          }));
+
+          setDistributors(normalized);
+          setCurrentPage(1); // reset pagination on MD change
         } else {
-          const serverMsg = res.data?.message || JSON.stringify(res.data);
-          toast.error(`Failed to load distributors: ${serverMsg}`);
+          toast.error("Failed to load distributors");
           setDistributors([]);
         }
       } catch (error: any) {
         console.error("Error fetching distributors:", error);
-        if (error.response) {
-          console.error("Server response data:", error.response.data);
-          toast.error(error.response.data?.message || "Failed to load distributors (server error)");
-        } else if (error.request) {
-          toast.error("No response from server. Check backend or network (CORS?).");
-        } else {
-          toast.error(error.message || "Failed to load distributors");
-        }
+        toast.error(error.response?.data?.message || "Failed to load distributors");
         setDistributors([]);
       } finally {
-        setLoading(false);
+        setLoadingDistributors(false);
       }
     };
 
-    fetchDistributors();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [admin_id]);
+    if (selectedMD) fetchDistributors(selectedMD);
+  }, [selectedMD]);
 
-  // Pagination calculations
+  // Pagination
   const totalPages = Math.max(1, Math.ceil(distributors.length / itemsPerPage));
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentDistributors = distributors.slice(startIndex, startIndex + itemsPerPage);
 
-  const handlePrevPage = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
-  const handleNextPage = () => setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  const handlePrevPage = () => setCurrentPage((p) => Math.max(p - 1, 1));
+  const handleNextPage = () => setCurrentPage((p) => Math.min(p + 1, totalPages));
 
   return (
     <Card className="shadow-md">
-      <CardHeader>
+      <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <CardTitle className="font-poppins text-xl">Distributors</CardTitle>
+        
+        {/* Master Distributor Select */}
+        <div className="flex items-center gap-3">
+          <Label className="text-sm font-medium whitespace-nowrap">Master Distributor:</Label>
+          {loadingMDs ? (
+            <div className="flex items-center gap-2 h-10 px-3 border border-input rounded-md bg-background min-w-[200px]">
+              <Loader2 className="animate-spin h-4 w-4 text-primary" />
+              <span className="text-sm text-muted-foreground">Loading...</span>
+            </div>
+          ) : (
+            <Select
+              value={selectedMD}
+              onValueChange={setSelectedMD}
+            >
+              <SelectTrigger className="h-10 min-w-[200px]">
+                <SelectValue placeholder="Select master distributor" />
+              </SelectTrigger>
+              <SelectContent>
+                {masterDistributors.length === 0 ? (
+                  <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                    No master distributors found
+                  </div>
+                ) : (
+                  masterDistributors.map((md) => (
+                    <SelectItem
+                      key={md.master_distributor_id}
+                      value={md.master_distributor_id}
+                    >
+                      {md.master_distributor_name || md.master_distributor_unique_id || md.master_distributor_id}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+          )}
+        </div>
       </CardHeader>
 
       <CardContent>
-        {loading ? (
+        {!selectedMD ? (
+          <div className="flex justify-center items-center py-10">
+            <p className="text-muted-foreground">Please select a master distributor to view distributors</p>
+          </div>
+        ) : loadingDistributors ? (
           <div className="flex justify-center items-center py-10">
             <Loader2 className="animate-spin h-6 w-6 text-primary" />
             <span className="ml-2 text-muted-foreground">Loading distributors...</span>
@@ -152,35 +247,35 @@ export default function GetAllDistributor() {
 
               <TableBody>
                 {currentDistributors.length > 0 ? (
-                  currentDistributors.map((distributor, index) => (
-                    <TableRow key={distributor.distributor_id}>
-                      <TableCell>{startIndex + index + 1}</TableCell>
+                  currentDistributors.map((d, idx) => (
+                    <TableRow key={d.distributor_id}>
+                      <TableCell>{startIndex + idx + 1}</TableCell>
                       <TableCell className="font-mono">
-                        {distributor.distributor_unique_id || "N/A"}
+                        {d.distributor_unique_id || "N/A"}
                       </TableCell>
                       <TableCell className="font-medium">
-                        {distributor.distributor_name || "N/A"}
+                        {d.distributor_name || "N/A"}
                       </TableCell>
-                      <TableCell>{distributor.distributor_email || "N/A"}</TableCell>
-                      <TableCell>{distributor.distributor_phone || "N/A"}</TableCell>
+                      <TableCell>{d.distributor_email || "N/A"}</TableCell>
+                      <TableCell>{d.distributor_phone || "N/A"}</TableCell>
                       <TableCell className="font-semibold">
-                        ₹{Number(distributor.distributor_wallet_balance || 0).toLocaleString()}
+                        ₹{Number(d.distributor_wallet_balance || 0).toLocaleString()}
                       </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
-                      No distributors found
+                      No distributors found for the selected master distributor
                     </TableCell>
                   </TableRow>
                 )}
               </TableBody>
             </Table>
 
-            {/* Pagination Controls */}
+            {/* Pagination controls */}
             {distributors.length > itemsPerPage && (
-              <div className="flex justify-end gap-x-4 mt-5 items-center">
+              <div className="flex justify-end gap-x-4 mt-4 items-center">
                 <Button
                   variant="outline"
                   size="sm"

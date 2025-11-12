@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -15,6 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Eye, EyeOff } from "lucide-react";
 
 const distributorSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").max(100),
@@ -40,6 +42,8 @@ interface DecodedAdminToken {
 const CreateMasterDistributorPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
+  const [password, setPassword] = useState("");
 
   let admin_id = "";
   const token = localStorage.getItem("authToken");
@@ -53,6 +57,21 @@ const CreateMasterDistributorPage = () => {
       console.error("Invalid admin token:", err);
     }
   }
+
+  // Password strength helper
+  const getPasswordStrength = (pwd: string): { label: "Weak" | "Medium" | "Strong"; score: 0 | 1 | 2 | 3 } => {
+    if (!pwd) return { label: "Weak", score: 0 };
+    const hasLower = /[a-z]/.test(pwd);
+    const hasUpper = /[A-Z]/.test(pwd);
+    const hasSpecial = /[^A-Za-z0-9]/.test(pwd);
+    const longEnough = pwd.length >= 8;
+
+    const met = [hasLower, hasUpper, hasSpecial].filter(Boolean).length;
+
+    if (met <= 1 || pwd.length < 6) return { label: "Weak", score: 1 };
+    if (met === 2 || (met === 3 && !longEnough)) return { label: "Medium", score: 2 };
+    return { label: "Strong", score: 3 };
+  };
 
   const {
     register,
@@ -164,13 +183,60 @@ const CreateMasterDistributorPage = () => {
 
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              {...register("password")}
-              className="h-11"
-            />
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                {...register("password")}
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  register("password").onChange(e);
+                }}
+                className="h-11 pr-12"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary focus:outline-none"
+                tabIndex={-1}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
+            {password && (
+              <div className="space-y-1.5">
+                <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-300 ${
+                      getPasswordStrength(password).score === 1
+                        ? "w-1/3 bg-destructive"
+                        : getPasswordStrength(password).score === 2
+                        ? "w-2/3 bg-orange-500"
+                        : getPasswordStrength(password).score === 3
+                        ? "w-full bg-emerald-500"
+                        : "w-0"
+                    }`}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Password strength:{" "}
+                  <span
+                    className={`font-medium ${
+                      getPasswordStrength(password).label === "Weak"
+                        ? "text-destructive"
+                        : getPasswordStrength(password).label === "Medium"
+                        ? "text-orange-500"
+                        : "text-emerald-600"
+                    }`}
+                  >
+                    {getPasswordStrength(password).label}
+                  </span>
+                </p>
+              </div>
+            )}
             {errors.password && (
               <p className="text-sm text-destructive">
                 {errors.password.message}
