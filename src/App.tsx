@@ -17,10 +17,15 @@ import { Analytics } from "./components/admin/Analytics";
 import { ActivityLogs } from "./components/admin/ActivityLog";
 import { SupportQueries } from "./components/admin/Support";
 import paybazaarLogo from "./assets/paybazaar-logo.png";
-import CreateDistributorPage from "./components/admin/CreateMAsterDistributor";
+import CreateDistributorPage from "./components/admin/CreateDistributor";
 import { FundRequest } from "./components/admin/AdminFundRequest";
 import AdminTransactionTable from "./components/admin/transaction";
 import WalletTopUp from "./components/admin/WalletTopUp";
+import CreateMasterDistributorPage from "./components/admin/CreateMAsterDistributor";
+import CreateRetailerPage from "./components/admin/CreateRetailer";
+import GetAllMD from "./components/admin/GetAllMD";
+import GetAllDistributor from "./components/admin/GetallDistributors";
+import GetAllUsers from "./components/admin/GetAllUsers";
 
 const queryClient = new QueryClient();
 
@@ -75,10 +80,12 @@ const App = () => {
               <Route path="logs" element={<AdminTransactionTable />} />
               <Route path="funds/request" element={<FundRequest />} />
               <Route path="users" element={<UserManagement />} />
-              <Route
-                path="create/create-distributor"
-                element={<CreateDistributorPage />}
-              />
+              <Route path="create/md" element={<CreateMasterDistributorPage />} />
+              <Route path="create/distributor" element={<CreateDistributorPage />} />
+              <Route path="create/user" element={<CreateRetailerPage/>} />
+              <Route path="info/md" element={<GetAllMD />} />
+              <Route path="info/distributor" element={<GetAllDistributor />} />
+              <Route path="info/user" element={<GetAllUsers />} />
               {/* <Route path="logs/t" element={<TransactionLogs />} /> */}
               <Route path="commission" element={<CommissionSystem />} />
               <Route path="wallet" element={<WalletTopUp />} />

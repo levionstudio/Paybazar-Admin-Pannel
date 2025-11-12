@@ -37,7 +37,7 @@ interface DecodedAdminToken {
   iat?: number;
 }
 
-const CreateDistributorPage = () => {
+const CreateMasterDistributorPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -218,4 +218,4 @@ const CreateDistributorPage = () => {
   );
 };
 
-export default CreateDistributorPage;
+export default CreateMasterDistributorPage;

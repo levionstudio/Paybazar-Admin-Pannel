@@ -25,6 +25,7 @@ import {
   Edit,
   Undo,
   MapPin,
+  Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -60,10 +61,15 @@ const navigations = [
 ];
 
 const create = [
-  { name: "Distributor", href: "/admin/create/create-distributor", icon: UserCheck },
-  { name: "Distributor", href: "/admin/create/create-distributor", icon: UserCheck },
-  { name: "Distributor", href: "/admin/create/create-distributor", icon: UserCheck },
+  { name: "MD", href: "/admin/create/md", icon: UserCheck },
+  { name: "Distributor", href: "/admin/create/distributor", icon: UserCheck },
+  { name: "User", href: "/admin/create/user", icon: UserCheck },
 
+]
+const info = [
+  { name: "MD", href: "/admin/info/md", icon: UserCheck },
+  { name: "Distributor", href: "/admin/info/distributor", icon: UserCheck },
+  { name: "User", href: "/admin/info/user", icon: UserCheck },
 ]
 
 const fundsSubMenu = [
@@ -86,6 +92,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
   const location = useLocation();
   const [fundsExpanded, setFundsExpanded] = useState(false);
   const [createExpanded, setCreateExpanded] = useState(false);
+  const [infoExpanded, setInfoExpanded] = useState(false);
 
 
   const isActive = (path: string) => {
@@ -112,6 +119,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
 
   const isFundsActive = location.pathname.startsWith("/admin/funds");
   const isCreateActive = location.pathname.startsWith("/admin/create");
+  const isInfoActive = location.pathname.startsWith("/admin/info");
 
   return (
     <>
@@ -286,7 +294,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                   <UserCheck
                     className={cn(
                       "mr-3 h-5 w-5 flex-shrink-0 transition-colors",
-                      isFundsActive
+                      isCreateActive
                         ? "text-primary-foreground"
                         : "text-muted-foreground group-hover:text-secondary-foreground"
                     )}
@@ -334,9 +342,72 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                 </div>
               )}
 
+              {/* Info Dropdown */}
+              <button
+                onClick={() => setInfoExpanded(!infoExpanded)}
+                className={cn(
+                  "group flex items-center justify-between w-full px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200",
+                  isInfoActive
+                    ? "gradient-primary text-primary-foreground shadow-glow"
+                    : "text-muted-foreground hover:bg-secondary hover:text-secondary-foreground"
+                )}
+              >
+                <div className="flex items-center">
+                  <Info
+                    className={cn(
+                      "mr-3 h-5 w-5 flex-shrink-0 transition-colors",
+                      isInfoActive
+                        ? "text-primary-foreground"
+                        : "text-muted-foreground group-hover:text-secondary-foreground"
+                    )}
+                  />
+                  Info
+                </div>
+                {infoExpanded ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </button>
+
+              {/* Info Submenu */}
+              {infoExpanded && (
+                <div className="ml-6 space-y-1">
+                  {info.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <NavLink
+                        key={item.name}
+                        to={item.href}
+                        className={cn(
+                          "group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200",
+                          isActive(item.href)
+                            ? "bg-primary/10 text-primary border-l-2 border-primary"
+                            : "text-muted-foreground hover:bg-secondary/50 hover:text-secondary-foreground"
+                        )}
+                        onClick={() => setIsOpen(false)}
+                      >
+                        <Icon
+                          className={cn(
+                            "mr-3 h-4 w-4 flex-shrink-0 transition-colors",
+                            isActive(item.href)
+                              ? "text-primary"
+                              : "text-muted-foreground group-hover:text-secondary-foreground"
+                          )}
+                        />
+                        {item.name}
+                      </NavLink>
+                    );
+                  })}
+                </div>
+              )}
+
               
             </div>
+
+            
           </nav>
+          
 
           {/* Admin Profile */}
           <div className="p-4 border-t border-border">
