@@ -72,7 +72,7 @@ export default function AdminTransactionTable() {
     const fetchTransactions = async () => {
       try {
         const res = await axios.get(
-          `http://64.227.165.232:8080/admin/wallet/get/transactions/${admin_id}`
+          `https://server.paybazaar.in/admin/wallet/get/transactions/${admin_id}`
         );
         setTransactions(res.data.data || []);
       } catch (error) {
