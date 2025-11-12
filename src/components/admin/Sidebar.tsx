@@ -34,7 +34,12 @@ import { toast } from "sonner";
 import { jwtDecode } from "jwt-decode";
 
 interface JWTPayload {
-  data: { admin_id: string; [key: string]: any };
+  data: { 
+    admin_id: string; 
+    admin_unique_id?: string;
+    admin_name?: string;
+    [key: string]: any 
+  };
 }
 
 
@@ -414,15 +419,15 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
             <div className="flex items-center space-x-3">
               <div className="h-8 w-8 rounded-full gradient-primary flex items-center justify-center">
                 <span className="text-sm font-semibold text-primary-foreground">
-                  A
+                  {adminDetails.admin_name ? adminDetails.admin_name.charAt(0).toUpperCase() : 'A'}
                 </span>
               </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-card-foreground">
-                  {adminDetails.user_name}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-card-foreground truncate">
+                  {adminDetails.admin_name || 'Admin'}
                 </p>
-                <p className="text-xs text-muted-foreground">
-                  admin@paybazaar.com
+                <p className="text-xs text-muted-foreground truncate">
+                  {adminDetails.admin_unique_id || ''}
                 </p>
               </div>
             </div>

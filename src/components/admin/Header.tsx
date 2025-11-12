@@ -14,20 +14,31 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import { jwtDecode } from "jwt-decode";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 interface HeaderProps {
   onMenuClick: () => void;
 }
 
 interface JWTPayload {
-  data: { admin_id: string; [key: string]: any };
+  data: { 
+    admin_id: string; 
+    admin_unique_id?: string;
+    admin_name?: string;
+    admin_email?: string; 
+    email?: string; 
+    [key: string]: any 
+  };
 }
 
 export function Header({ onMenuClick }: HeaderProps) {
   const [walletBalance, setWalletBalance] = useState(0);
   const [hideBalance, setHideBalance] = useState(false);
+  const [adminEmail, setAdminEmail] = useState<string>("");
+  const [adminName, setAdminName] = useState<string>("");
+  const [adminUniqueId, setAdminUniqueId] = useState<string>("");
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     setHideBalance(location.pathname === "/admin/funds/request");
@@ -49,19 +60,55 @@ export function Header({ onMenuClick }: HeaderProps) {
       return null;
     }
   };
+
+  const getAdminDetails = () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        return { email: "", name: "", uniqueId: "" };
+      }
+      const decoded = jwtDecode<JWTPayload>(token);
+      return {
+        email: decoded.data.admin_email || decoded.data.email || "",
+        name: decoded.data.admin_name || "",
+        uniqueId: decoded.data.admin_unique_id || ""
+      };
+    } catch (error) {
+      return { email: "", name: "", uniqueId: "" };
+    }
+  };
+
   const admin_id = getAdminId();
 
   useEffect(() => {
+    const details = getAdminDetails();
+    setAdminEmail(details.email);
+    setAdminName(details.name);
+    setAdminUniqueId(details.uniqueId);
+  }, []);
+
+  useEffect(() => {
     const fetchWalletBalance = async () => {
-      const response = await axios.get(
-        `${
-          import.meta.env.VITE_API_BASE_URL
-        }/admin/wallet/get/balance/${admin_id}`
-      );
-      setWalletBalance(response.data.data.balance);
+      if (!admin_id) return;
+      try {
+        const response = await axios.get(
+          `${
+            import.meta.env.VITE_API_BASE_URL
+          }/admin/wallet/get/balance/${admin_id}`
+        );
+        setWalletBalance(response.data.data.balance);
+      } catch (error) {
+        // Handle error silently or show toast if needed
+      }
     };
     fetchWalletBalance();
-  }, []);
+  }, [admin_id]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("authToken");
+    toast.success("Logged out successfully");
+    navigate("/");
+  };
   return (
     <header className="sticky top-0 z-40 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 border-b border-border">
       <div className="flex h-16 items-center justify-between px-4 lg:px-6">
@@ -152,12 +199,19 @@ export function Header({ onMenuClick }: HeaderProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Admin Account</DropdownMenuLabel>
+              {adminName && (
+                <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">
+                  {adminName}
+                </DropdownMenuLabel>
+              )}
+             
+            
               <DropdownMenuSeparator />
               {/* <DropdownMenuItem>
                 <Settings className="mr-2 h-4 w-4" />
                 Settings
               </DropdownMenuItem> */}
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 Logout
               </DropdownMenuItem>
