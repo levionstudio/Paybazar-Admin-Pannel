@@ -158,7 +158,7 @@ const CreateMasterDistributorPage = () => {
             <Label htmlFor="name">Full Name</Label>
             <Input
               id="name"
-              placeholder="John Doe"
+              placeholder="Paybazaar"
               {...register("name")}
               className="h-11"
             />
@@ -172,7 +172,7 @@ const CreateMasterDistributorPage = () => {
             <Input
               id="email"
               type="email"
-              placeholder="john@example.com"
+              placeholder="paybazaar@example.com"
               {...register("email")}
               className="h-11"
             />

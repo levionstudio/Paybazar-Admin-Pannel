@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react"
-import { jwtDecode } from "jwt-decode"
-import axios from "axios"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState, useEffect } from "react";
+import { jwtDecode } from "jwt-decode";
+import axios from "axios";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -10,184 +10,184 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { toast } from "@/hooks/use-toast"
-import { Loader2, CheckCircle, XCircle, RefreshCw, Wallet } from "lucide-react"
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "@/hooks/use-toast";
+import { Loader2, CheckCircle, XCircle, RefreshCw, Wallet } from "lucide-react";
 
 interface FundRequest {
-  admin_id: string
-  request_id: string
-  requester_id: string
-  requester_name: string
-  requester_type: string
-  amount: string
-  bank_name: string
-  account_number: string
-  ifsc_code: string
-  bank_branch: string
-  utr_number: string
-  remarks: string
-  request_status: string
+  admin_id: string;
+  request_id: string;
+  requester_id: string;
+  requester_name: string;
+  requester_type: string;
+  amount: string;
+  bank_name: string;
+  account_number: string;
+  ifsc_code: string;
+  bank_branch: string;
+  utr_number: string;
+  remarks: string;
+  request_status: string;
 }
 
 interface JWTPayload {
-  data: { admin_id: string; [key: string]: any }
+  data: { admin_id: string; [key: string]: any };
 }
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://64.227.165.232:8080"
+  import.meta.env.VITE_API_BASE_URL || "http://64.227.165.232:8080";
 
 export function FundRequest() {
-  const [requests, setRequests] = useState<FundRequest[]>([])
-  const [walletBalance, setWalletBalance] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const [processingIds, setProcessingIds] = useState<Set<string>>(new Set())
-  const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 6
+  const [requests, setRequests] = useState<FundRequest[]>([]);
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   const getAdminId = (): string | null => {
     try {
-      const token = localStorage.getItem("authToken")
+      const token = localStorage.getItem("authToken");
       if (!token) {
         toast({
           title: "Error",
           description: "Authentication token not found",
           variant: "destructive",
-        })
-        return null
+        });
+        return null;
       }
-      const decoded = jwtDecode<JWTPayload>(token)
-      return decoded.data.admin_id
+      const decoded = jwtDecode<JWTPayload>(token);
+      return decoded.data.admin_id;
     } catch (error) {
       toast({
         title: "Error",
         description: "Invalid authentication token",
         variant: "destructive",
-      })
-      return null
+      });
+      return null;
     }
-  }
+  };
 
-  const admin_id = getAdminId()
+  const admin_id = getAdminId();
 
   const fetchWalletBalance = async () => {
-    if (!admin_id) return
+    if (!admin_id) return;
     try {
       const response = await axios.get(
         `${API_BASE_URL}/admin/wallet/get/balance/${admin_id}`
-      )
-      setWalletBalance(response.data.data.balance)
+      );
+      setWalletBalance(response.data.data.balance);
     } catch {
       toast({
         title: "Error",
         description: "Failed to fetch wallet balance",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   const fetchRequests = async () => {
-    setLoading(true)
-    const adminId = getAdminId()
+    setLoading(true);
+    const adminId = getAdminId();
     if (!adminId) {
-      setLoading(false)
-      return
+      setLoading(false);
+      return;
     }
 
     try {
       const response = await axios.get(
         `${API_BASE_URL}/admin/get/fund/requests/${adminId}`
-      )
-      const data = response.data.data
+      );
+      const data = response.data.data;
 
       // ✅ Safely handle null or undefined
-      setRequests(Array.isArray(data) ? data : [])
+      setRequests(Array.isArray(data) ? data : []);
 
       toast({
         title: "Success",
         description: "Fund requests loaded successfully",
-      })
+      });
     } catch (error: any) {
       toast({
         title: "Error",
         description:
           error.response?.data?.message || "Failed to fetch fund requests",
         variant: "destructive",
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchWalletBalance()
-    fetchRequests()
-  }, [])
+    fetchWalletBalance();
+    fetchRequests();
+  }, []);
 
   const handleAccept = async (requestId: string) => {
-    const adminId = getAdminId()
-    if (!adminId) return
+    const adminId = getAdminId();
+    if (!adminId) return;
 
-    setProcessingIds((prev) => new Set(prev).add(requestId))
+    setProcessingIds((prev) => new Set(prev).add(requestId));
 
     try {
       await axios.post(`${API_BASE_URL}/admin/accept/fund/request`, {
         admin_id: adminId,
         request_id: requestId,
-      })
+      });
 
       toast({
         title: "Success",
         description: "Fund request accepted successfully",
-      })
-      fetchWalletBalance()
-      fetchRequests()
+      });
+      fetchWalletBalance();
+      fetchRequests();
     } catch (error: any) {
       toast({
         title: "Error",
         description:
           error.response?.data?.message || "Failed to accept fund request",
         variant: "destructive",
-      })
+      });
     } finally {
       setProcessingIds((prev) => {
-        const newSet = new Set(prev)
-        newSet.delete(requestId)
-        return newSet
-      })
+        const newSet = new Set(prev);
+        newSet.delete(requestId);
+        return newSet;
+      });
     }
-  }
+  };
 
   const handleReject = async (requestId: string) => {
-    const adminId = getAdminId()
-    if (!adminId) return
+    const adminId = getAdminId();
+    if (!adminId) return;
 
-    setProcessingIds((prev) => new Set(prev).add(requestId))
+    setProcessingIds((prev) => new Set(prev).add(requestId));
 
     try {
-      await axios.get(`${API_BASE_URL}/admin/reject/fund/request/${requestId}`)
+      await axios.get(`${API_BASE_URL}/admin/reject/fund/request/${requestId}`);
 
       toast({
         title: "Success",
         description: "Fund request rejected successfully",
-      })
-      fetchRequests()
+      });
+      fetchRequests();
     } catch (error: any) {
       toast({
         title: "Error",
         description:
           error.response?.data?.message || "Failed to reject fund request",
         variant: "destructive",
-      })
+      });
     } finally {
       setProcessingIds((prev) => {
-        const newSet = new Set(prev)
-        newSet.delete(requestId)
-        return newSet
-      })
+        const newSet = new Set(prev);
+        newSet.delete(requestId);
+        return newSet;
+      });
     }
-  }
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status.toUpperCase()) {
@@ -199,7 +199,7 @@ export function FundRequest() {
           >
             Pending
           </Badge>
-        )
+        );
       case "APPROVED":
         return (
           <Badge
@@ -208,7 +208,7 @@ export function FundRequest() {
           >
             Approved
           </Badge>
-        )
+        );
       case "REJECTED":
         return (
           <Badge
@@ -217,23 +217,23 @@ export function FundRequest() {
           >
             Rejected
           </Badge>
-        )
+        );
       default:
-        return <Badge variant="outline">{status}</Badge>
+        return <Badge variant="outline">{status}</Badge>;
     }
-  }
+  };
 
-  const totalPages = Math.ceil(requests.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const endIndex = startIndex + itemsPerPage
-  const paginatedRequests = requests.slice(startIndex, endIndex)
+  const totalPages = Math.ceil(requests.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedRequests = requests.slice(startIndex, endIndex);
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
-    )
+    );
   }
 
   return (
@@ -260,12 +260,9 @@ export function FundRequest() {
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="pl-8">All Fund Requests</CardTitle>
-        </CardHeader>
         <CardContent className="p-0">
           <div>
-            <div className="max-h-[600px] max-w-6xl overflow-y-auto pl-10">
+            <div className="max-h-[600px] max-w-7xl overflow-y-auto   ">
               <Table className="w-full">
                 <TableHeader className="sticky top-0 bg-background z-10">
                   <TableRow>
@@ -356,9 +353,7 @@ export function FundRequest() {
                               <Button
                                 size="sm"
                                 variant="default"
-                                onClick={() =>
-                                  handleAccept(request.request_id)
-                                }
+                                onClick={() => handleAccept(request.request_id)}
                                 disabled={processingIds.has(request.request_id)}
                               >
                                 {processingIds.has(request.request_id) ? (
@@ -373,9 +368,7 @@ export function FundRequest() {
                               <Button
                                 size="sm"
                                 variant="destructive"
-                                onClick={() =>
-                                  handleReject(request.request_id)
-                                }
+                                onClick={() => handleReject(request.request_id)}
                                 disabled={processingIds.has(request.request_id)}
                               >
                                 {processingIds.has(request.request_id) ? (
@@ -444,5 +437,5 @@ export function FundRequest() {
         )}
       </Card>
     </div>
-  )
+  );
 }

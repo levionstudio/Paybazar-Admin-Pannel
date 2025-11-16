@@ -129,7 +129,7 @@ export default function GetAllDistributor() {
       try {
         const token = localStorage.getItem("authToken");
         const res = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/admin/get/distributor/${mdId}`,
+          `${import.meta.env.VITE_API_BASE_URL}/admin/get/distributors/${mdId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

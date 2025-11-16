@@ -177,7 +177,7 @@ const CreateRetailerPage = () => {
       setLoadingDistributors(true)
       try {
         const res = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/admin/get/distributor/${selectedMasterDistributorId}`,
+          `${import.meta.env.VITE_API_BASE_URL}/admin/get/distributors/${selectedMasterDistributorId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
