@@ -26,6 +26,7 @@ import {
   Undo,
   MapPin,
   Info,
+  Ticket,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -63,6 +64,7 @@ const navigations = [
   // { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
   // { name: 'Security', href: '/admin/security', icon: Shield },
   { name: "Wallet Top Up", href: "/admin/wallet", icon: Wallet },
+  {name: "Tickets", href: "/admin/tickets", icon: Ticket },
 ];
 
 const create = [

@@ -26,6 +26,7 @@ import CreateRetailerPage from "./components/admin/CreateRetailer";
 import GetAllMD from "./components/admin/GetAllMD";
 import GetAllDistributor from "./components/admin/GetallDistributors";
 import GetAllUsers from "./components/admin/GetAllUsers";
+import { Tickets } from "./components/admin/Tickets";
 
 const queryClient = new QueryClient();
 
@@ -95,6 +96,7 @@ const App = () => {
               <Route path="activity" element={<ActivityLogs />} />
               <Route path="analytics" element={<Analytics />} />
               <Route path="security" element={<Security />} />
+              <Route path="tickets" element={<Tickets />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
