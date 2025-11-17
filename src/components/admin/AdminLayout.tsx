@@ -1,10 +1,18 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 
 export function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      window.location.href = "/";
+    };
+   
+  }, []);
+
 
   return (
     <div className="flex min-h-screen bg-background">
