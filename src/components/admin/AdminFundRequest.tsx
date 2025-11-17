@@ -103,18 +103,9 @@ export function FundRequest() {
 
       // ✅ Safely handle null or undefined
       setRequests(Array.isArray(data) ? data : []);
-
-      toast({
-        title: "Success",
-        description: "Fund requests loaded successfully",
-      });
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description:
-          error.response?.data?.message || "Failed to fetch fund requests",
-        variant: "destructive",
-      });
+      // Silently handle error - just set empty array to show "No fund requests found"
+      setRequests([]);
     } finally {
       setLoading(false);
     }
