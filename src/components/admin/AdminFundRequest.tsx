@@ -267,18 +267,6 @@ export function FundRequest() {
                       Amount
                     </TableHead>
                     <TableHead className="text-center whitespace-nowrap">
-                      Bank Name
-                    </TableHead>
-                    <TableHead className="text-center whitespace-nowrap">
-                      Account Number
-                    </TableHead>
-                    <TableHead className="text-center whitespace-nowrap">
-                      IFSC Code
-                    </TableHead>
-                    <TableHead className="text-center whitespace-nowrap">
-                      Branch
-                    </TableHead>
-                    <TableHead className="text-center whitespace-nowrap">
                       UTR Number
                     </TableHead>
                     <TableHead className="text-center whitespace-nowrap">
@@ -315,18 +303,6 @@ export function FundRequest() {
                         </TableCell>
                         <TableCell className="font-semibold text-center whitespace-nowrap">
                           ₹{parseFloat(request.amount).toLocaleString("en-IN")}
-                        </TableCell>
-                        <TableCell className="text-center whitespace-nowrap">
-                          {request.bank_name}
-                        </TableCell>
-                        <TableCell className="text-center whitespace-nowrap">
-                          {request.account_number}
-                        </TableCell>
-                        <TableCell className="text-center whitespace-nowrap">
-                          {request.ifsc_code}
-                        </TableCell>
-                        <TableCell className="text-center whitespace-nowrap">
-                          {request.bank_branch}
                         </TableCell>
                         <TableCell className="text-center whitespace-nowrap">
                           {request.utr_number}
