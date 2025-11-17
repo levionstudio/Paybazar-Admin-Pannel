@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
+import { Textarea } from "@/components/ui/textarea"
 
 const retailerSchema = z.object({
   master_distributor_id: z.string().min(1, "Please select a master distributor"),
@@ -36,6 +37,25 @@ const retailerSchema = z.object({
     .min(6, "Password must be at least 6 characters")
     .max(100),
   phone: z.string().regex(/^[1-9]\d{9}$/, "Enter a valid 10-digit phone number"),
+  aadhar: z.string().regex(/^\d{12}$/, "Aadhar must be 12 digits"),
+  pan: z
+    .string()
+    .regex(/^[A-Z]{5}\d{4}[A-Z]$/, "Enter a valid PAN number")
+    .transform((val) => val.toUpperCase()),
+  dob: z
+    .string()
+    .refine((val) => !Number.isNaN(Date.parse(val)), "Enter a valid date")
+    .refine(
+      (val) => new Date(val) <= new Date(),
+      "Date of birth cannot be in the future"
+    ),
+  gender: z.enum(["MALE", "FEMALE", "OTHER"], {
+    required_error: "Please select a gender",
+  }),
+  city: z.string().min(2, "City is required"),
+  state: z.string().min(2, "State is required"),
+  address: z.string().min(5, "Address must be at least 5 characters"),
+  pincode: z.string().regex(/^\d{6}$/, "Pincode must be 6 digits"),
 })
 
 type RetailerFormData = z.infer<typeof retailerSchema>
@@ -232,6 +252,7 @@ const CreateRetailerPage = () => {
   })
 
   const selectedDistributorId = watch("distributor_id")
+  const genderValue = watch("gender")
 
   // Reset distributor selection when master distributor changes
   useEffect(() => {
@@ -282,6 +303,14 @@ const CreateRetailerPage = () => {
         user_email: data.email,
         user_password: data.password,
         user_phone: data.phone,
+        user_aadhar_number: data.aadhar,
+        user_pan_number: data.pan,
+        user_date_of_birth: data.dob,
+        user_gender: data.gender,
+        user_city: data.city,
+        user_state: data.state,
+        user_address: data.address,
+        user_pincode: data.pincode,
       }
 
       console.log("Creating retailer with payload:", payload)
@@ -543,17 +572,116 @@ const CreateRetailerPage = () => {
                 )}
               </div>
 
-              <div>
-                <Label htmlFor="phone">Phone Number</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="9876543210"
+                    {...register("phone")}
+                    className="h-11"
+                  />
+                  {errors.phone && (
+                    <p className="text-sm text-destructive">{errors.phone.message}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="aadhar">Aadhar Number</Label>
+                  <Input
+                    id="aadhar"
+                    placeholder="123456789012"
+                    {...register("aadhar")}
+                    className="h-11"
+                  />
+                  {errors.aadhar && (
+                    <p className="text-sm text-destructive">{errors.aadhar.message}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="pan">PAN Number</Label>
+                  <Input
+                    id="pan"
+                    placeholder="ABCDE1234F"
+                    {...register("pan")}
+                    className="h-11 uppercase"
+                  />
+                  {errors.pan && (
+                    <p className="text-sm text-destructive">{errors.pan.message}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="dob">Date of Birth</Label>
+                  <Input id="dob" type="date" {...register("dob")} className="h-11" />
+                  {errors.dob && (
+                    <p className="text-sm text-destructive">{errors.dob.message}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Gender</Label>
+                <Select
+                  value={genderValue || ""}
+                  onValueChange={(value) => setValue("gender", value as RetailerFormData["gender"])}
+                >
+                  <SelectTrigger className="h-11">
+                    <SelectValue placeholder="Select gender" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="MALE">Male</SelectItem>
+                    <SelectItem value="FEMALE">Female</SelectItem>
+                    <SelectItem value="OTHER">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.gender && (
+                  <p className="text-sm text-destructive">{errors.gender.message}</p>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="city">City</Label>
+                  <Input id="city" placeholder="Hyderabad" {...register("city")} className="h-11" />
+                  {errors.city && (
+                    <p className="text-sm text-destructive">{errors.city.message}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="state">State</Label>
+                  <Input id="state" placeholder="Telangana" {...register("state")} className="h-11" />
+                  {errors.state && (
+                    <p className="text-sm text-destructive">{errors.state.message}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="address">Address</Label>
+                <Textarea
+                  id="address"
+                  placeholder="Madhapur, Hyderabad"
+                  {...register("address")}
+                  className="min-h-[100px]"
+                />
+                {errors.address && (
+                  <p className="text-sm text-destructive">{errors.address.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="pincode">Pincode</Label>
                 <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="9876543210"
-                  {...register("phone")}
+                  id="pincode"
+                  placeholder="500081"
+                  {...register("pincode")}
                   className="h-11"
                 />
-                {errors.phone && (
-                  <p className="text-sm text-destructive">{errors.phone.message}</p>
+                {errors.pincode && (
+                  <p className="text-sm text-destructive">{errors.pincode.message}</p>
                 )}
               </div>
 
