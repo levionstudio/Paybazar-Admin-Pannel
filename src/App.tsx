@@ -27,6 +27,7 @@ import GetAllMD from "./components/admin/GetAllMD";
 import GetAllDistributor from "./components/admin/GetallDistributors";
 import GetAllUsers from "./components/admin/GetAllUsers";
 import { Tickets } from "./components/admin/Tickets";
+import PayoutTransactionPage from "./components/admin/PayoutTransaction";
 
 const queryClient = new QueryClient();
 
@@ -79,6 +80,7 @@ const App = () => {
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<Dashboard />} />
               <Route path="logs" element={<AdminTransactionTable />} />
+              <Route path="logs/payout" element={<PayoutTransactionPage />} />
               <Route path="funds/request" element={<FundRequest />} />
               <Route path="users" element={<UserManagement />} />
               <Route path="create/md" element={<CreateMasterDistributorPage />} />

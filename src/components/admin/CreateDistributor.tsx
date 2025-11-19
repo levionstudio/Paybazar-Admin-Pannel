@@ -53,6 +53,9 @@ const distributorSchema = z.object({
   state: z.string().min(2, "State is required"),
   address: z.string().min(5, "Address must be at least 5 characters"),
   pincode: z.string().regex(/^\d{6}$/, "Pincode must be 6 digits"),
+  business_name: z.string().min(2, "Business name must be at least 2 characters").max(255),
+  business_type: z.string().min(1, "Business type is required"),
+  gst_number: z.string().optional().refine((val) => !val || /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(val), "Enter a valid GST number"),
 });
 
 type DistributorFormData = z.infer<typeof distributorSchema>;
@@ -267,6 +270,9 @@ const CreateDistributorPage = () => {
       distributor_state: data.state,
       distributor_address: data.address,
       distributor_pincode: data.pincode,
+      business_name: data.business_name,
+      business_type: data.business_type,
+      gst_number: data.gst_number || "",
     };
     
     console.log("Creating distributor with:", {
@@ -600,6 +606,45 @@ const CreateDistributorPage = () => {
               />
               {errors.pincode && (
                 <p className="text-sm text-destructive">{errors.pincode.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="business_name">Business Name</Label>
+              <Input
+                id="business_name"
+                placeholder="Enter business name"
+                {...register("business_name")}
+                className="h-11"
+              />
+              {errors.business_name && (
+                <p className="text-sm text-destructive">{errors.business_name.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="business_type">Business Type</Label>
+              <Input
+                id="business_type"
+                placeholder="Enter business type"
+                {...register("business_type")}
+                className="h-11"
+              />
+              {errors.business_type && (
+                <p className="text-sm text-destructive">{errors.business_type.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="gst_number">GST Number (Optional)</Label>
+              <Input
+                id="gst_number"
+                placeholder="22AAAAA0000A1Z5"
+                {...register("gst_number")}
+                className="h-11 uppercase"
+              />
+              {errors.gst_number && (
+                <p className="text-sm text-destructive">{errors.gst_number.message}</p>
               )}
             </div>
 
