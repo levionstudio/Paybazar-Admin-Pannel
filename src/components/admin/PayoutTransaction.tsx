@@ -486,6 +486,7 @@
 // };
 
 // export default PayoutTransactionPage;
+
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
@@ -712,9 +713,8 @@ const PayoutTransactionPage = () => {
   const paginatedTransactions = transactions.slice(startIndex, endIndex);
 
   return (
-    <div className="w-full p-4">
-      <div className="max-w-full mx-auto">
-        <Card>
+    <div className="w-full p-4 overflow-x-hidden">
+      <Card className="w-full max-w-full">
           <CardHeader>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
@@ -740,7 +740,7 @@ const PayoutTransactionPage = () => {
               )}
             </div>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 overflow-x-hidden">
           {/* User Selection */}
           <div className="space-y-2 max-w-md">
             <Label htmlFor="user-select">Select User</Label>
@@ -908,13 +908,13 @@ const PayoutTransactionPage = () => {
 
                   {/* Pagination */}
                   {transactions.length > 0 && (
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 flex-wrap">
                       <div className="text-sm text-muted-foreground">
                         Showing {startIndex + 1} to{" "}
                         {Math.min(endIndex, transactions.length)} of{" "}
                         {transactions.length} transactions
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap justify-center">
                         <Button
                           variant="outline"
                           size="sm"
