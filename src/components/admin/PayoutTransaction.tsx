@@ -328,7 +328,16 @@ const PayoutTransactionPage = () => {
                                 Amount
                               </TableHead>
                               <TableHead className="text-center whitespace-nowrap">
-                                Commission
+                                Ad Commission
+                              </TableHead>
+                              <TableHead className="text-center whitespace-nowrap">
+                                MD Commission
+                              </TableHead>
+                              <TableHead className="text-center whitespace-nowrap">
+                                Dis Commission
+                              </TableHead>
+                              <TableHead className="text-center whitespace-nowrap">
+                                Ret Commission
                               </TableHead>
                               <TableHead className="text-center whitespace-nowrap">
                                 Transfer Type
@@ -373,11 +382,33 @@ const PayoutTransactionPage = () => {
                                     })}
                                   </TableCell>
                                   <TableCell className="text-center whitespace-nowrap">
-                                    ₹{parseFloat(tx.commission).toLocaleString("en-IN", {
-                                      minimumFractionDigits: 2,
-                                      maximumFractionDigits: 2,
-                                    })}
-                                  </TableCell>
+  ₹{(parseFloat(tx.commission) * 0.25).toLocaleString("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}
+</TableCell>
+
+<TableCell className="text-center whitespace-nowrap">
+  ₹{(parseFloat(tx.commission) * 0.05).toLocaleString("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}
+</TableCell>
+
+<TableCell className="text-center whitespace-nowrap">
+  ₹{(parseFloat(tx.commission) * 0.20).toLocaleString("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}
+</TableCell>
+
+<TableCell className="text-center whitespace-nowrap">
+  ₹{(parseFloat(tx.commission) * 0.50).toLocaleString("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}
+</TableCell>
+
                                   <TableCell className="text-center">
                                     {tx.transfer_type}
                                   </TableCell>
