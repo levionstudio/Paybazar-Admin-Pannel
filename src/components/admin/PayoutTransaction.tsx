@@ -486,7 +486,6 @@
 // };
 
 // export default PayoutTransactionPage;
-
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
@@ -713,36 +712,37 @@ const PayoutTransactionPage = () => {
   const paginatedTransactions = transactions.slice(startIndex, endIndex);
 
   return (
-    <div className="container mx-auto p-4 max-w-[1600px]">
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <CardTitle className="text-2xl">Payout Transactions</CardTitle>
-              <p className="text-sm text-muted-foreground mt-1">
-                View payout transaction history by user
-              </p>
+    <div className="w-full p-4">
+      <div className="max-w-full mx-auto">
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <CardTitle className="text-2xl">Payout Transactions</CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  View payout transaction history by user
+                </p>
+              </div>
+              {selectedUserId && (
+                <Button
+                  onClick={fetchTransactions}
+                  disabled={loadingTransactions}
+                  variant="outline"
+                  size="sm"
+                >
+                  {loadingTransactions ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-4 w-4" />
+                  )}
+                  <span className="ml-2">Refresh</span>
+                </Button>
+              )}
             </div>
-            {selectedUserId && (
-              <Button
-                onClick={fetchTransactions}
-                disabled={loadingTransactions}
-                variant="outline"
-                size="sm"
-              >
-                {loadingTransactions ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-4 w-4" />
-                )}
-                <span className="ml-2">Refresh</span>
-              </Button>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
+          </CardHeader>
+          <CardContent className="space-y-6">
           {/* User Selection */}
-          <div className="space-y-2">
+          <div className="space-y-2 max-w-md">
             <Label htmlFor="user-select">Select User</Label>
             <Select
               value={selectedUserId}
@@ -794,9 +794,9 @@ const PayoutTransactionPage = () => {
                 </div>
               ) : (
                 <>
-                  <div className="border rounded-lg overflow-hidden">
-                    <div className="overflow-x-auto">
-                      <Table>
+                  <div className="border rounded-lg overflow-hidden w-full">
+                    <div className="overflow-x-auto w-full">
+                      <Table className="w-full">
                         <TableHeader>
                           <TableRow>
                             <TableHead className="whitespace-nowrap min-w-[120px]">
@@ -985,4 +985,3 @@ const PayoutTransactionPage = () => {
 };
 
 export default PayoutTransactionPage;
-
