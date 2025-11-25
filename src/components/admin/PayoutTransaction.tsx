@@ -776,7 +776,7 @@ const PayoutTransactionPage = () => {
 
           {/* Transactions Table */}
           {selectedUserId && (
-            <div className="space-y-4">
+            <div className="space-y-4 w-full">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">
                   Transactions
@@ -794,45 +794,45 @@ const PayoutTransactionPage = () => {
                 </div>
               ) : (
                 <>
-                  <div className="border rounded-lg overflow-hidden w-full">
-                    <div className="overflow-x-auto w-full">
-                      <Table className="w-full">
+                  <div className="w-full border rounded-lg overflow-hidden">
+                    <div className="w-full overflow-x-auto">
+                      <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead className="whitespace-nowrap min-w-[120px]">
+                            <TableHead className="whitespace-nowrap min-w-[100px] px-2 py-2 text-xs">
                               Txn ID
                             </TableHead>
-                            <TableHead className="whitespace-nowrap min-w-[110px]">
+                            <TableHead className="whitespace-nowrap min-w-[100px] px-2 py-2 text-xs">
                               Phone
                             </TableHead>
-                            <TableHead className="whitespace-nowrap min-w-[120px]">
+                            <TableHead className="whitespace-nowrap min-w-[100px] px-2 py-2 text-xs">
                               Bank
                             </TableHead>
-                            <TableHead className="whitespace-nowrap min-w-[140px]">
+                            <TableHead className="whitespace-nowrap min-w-[120px] px-2 py-2 text-xs">
                               Beneficiary
                             </TableHead>
-                            <TableHead className="whitespace-nowrap text-right min-w-[100px]">
+                            <TableHead className="whitespace-nowrap text-right min-w-[90px] px-2 py-2 text-xs">
                               Amount
                             </TableHead>
-                            <TableHead className="whitespace-nowrap text-right min-w-[80px]">
+                            <TableHead className="whitespace-nowrap text-right min-w-[70px] px-2 py-2 text-xs">
                               Ad Comm
                             </TableHead>
-                            <TableHead className="whitespace-nowrap text-right min-w-[80px]">
+                            <TableHead className="whitespace-nowrap text-right min-w-[70px] px-2 py-2 text-xs">
                               MD Comm
                             </TableHead>
-                            <TableHead className="whitespace-nowrap text-right min-w-[80px]">
+                            <TableHead className="whitespace-nowrap text-right min-w-[70px] px-2 py-2 text-xs">
                               Dis Comm
                             </TableHead>
-                            <TableHead className="whitespace-nowrap text-right min-w-[80px]">
+                            <TableHead className="whitespace-nowrap text-right min-w-[70px] px-2 py-2 text-xs">
                               Ret Comm
                             </TableHead>
-                            <TableHead className="whitespace-nowrap min-w-[90px]">
+                            <TableHead className="whitespace-nowrap min-w-[70px] px-2 py-2 text-xs">
                               Type
                             </TableHead>
-                            <TableHead className="whitespace-nowrap min-w-[90px]">
+                            <TableHead className="whitespace-nowrap min-w-[80px] px-2 py-2 text-xs">
                               Status
                             </TableHead>
-                            <TableHead className="whitespace-nowrap min-w-[150px]">
+                            <TableHead className="whitespace-nowrap min-w-[140px] px-2 py-2 text-xs">
                               Date & Time
                             </TableHead>
                           </TableRow>
@@ -850,52 +850,52 @@ const PayoutTransactionPage = () => {
                           ) : (
                             paginatedTransactions.map((tx) => (
                               <TableRow key={tx.transaction_id}>
-                                <TableCell className="font-mono text-xs">
+                                <TableCell className="font-mono text-xs px-2 py-2">
                                   {tx.transaction_id}
                                 </TableCell>
-                                <TableCell className="text-sm">
+                                <TableCell className="text-xs px-2 py-2">
                                   {tx.phone_number}
                                 </TableCell>
-                                <TableCell className="text-sm">
+                                <TableCell className="text-xs px-2 py-2">
                                   {tx.bank_name}
                                 </TableCell>
-                                <TableCell className="text-sm">
+                                <TableCell className="text-xs px-2 py-2">
                                   {tx.beneficiary_name}
                                 </TableCell>
-                                <TableCell className="text-right font-medium text-sm">
+                                <TableCell className="text-right font-medium text-xs px-2 py-2">
                                   ₹{formatAmount(tx.amount)}
                                 </TableCell>
-                                <TableCell className="text-right text-sm">
+                                <TableCell className="text-right text-xs px-2 py-2">
                                   ₹
                                   {formatAmount(
                                     (parseFloat(tx.commission) * 0.25).toString()
                                   )}
                                 </TableCell>
-                                <TableCell className="text-right text-sm">
+                                <TableCell className="text-right text-xs px-2 py-2">
                                   ₹
                                   {formatAmount(
                                     (parseFloat(tx.commission) * 0.05).toString()
                                   )}
                                 </TableCell>
-                                <TableCell className="text-right text-sm">
+                                <TableCell className="text-right text-xs px-2 py-2">
                                   ₹
                                   {formatAmount(
                                     (parseFloat(tx.commission) * 0.2).toString()
                                   )}
                                 </TableCell>
-                                <TableCell className="text-right text-sm">
+                                <TableCell className="text-right text-xs px-2 py-2">
                                   ₹
                                   {formatAmount(
                                     (parseFloat(tx.commission) * 0.5).toString()
                                   )}
                                 </TableCell>
-                                <TableCell className="text-sm">
+                                <TableCell className="text-xs px-2 py-2">
                                   {tx.transfer_type}
                                 </TableCell>
-                                <TableCell>
+                                <TableCell className="px-2 py-2">
                                   {getStatusBadge(tx.transaction_status)}
                                 </TableCell>
-                                <TableCell className="text-sm">
+                                <TableCell className="text-xs px-2 py-2">
                                   {formatDate(tx.transaction_date_and_time)}
                                 </TableCell>
                               </TableRow>
