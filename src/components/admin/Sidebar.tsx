@@ -46,7 +46,6 @@ interface JWTPayload {
 
 const navigation = [
  { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-  // { name: 'User Management', href: '/admin/users', icon: Users },
 ];
 
 const transactionLogsSubMenu = [
@@ -55,28 +54,16 @@ const transactionLogsSubMenu = [
 ];
 
 const navigations = [
-  // { name: 'Commission System', href: '/admin/commission', icon: DollarSign },
-  // {
-  //   name: "Create Distributor",
-  //   href: "/admin/create-distributor",
-  //   icon: UserCheck,
-  // },
-  // { name: 'KYC Verification', href: '/admin/kyc', icon: UserCheck },
-  // { name: 'API Management', href: '/admin/api', icon: CreditCard },
-  // { name: 'Support Queries', href: '/admin/support', icon: HelpCircle },
-  // { name: 'Activity Logs', href: '/admin/activity', icon: Activity },
-  // { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
-  // { name: 'Security', href: '/admin/security', icon: Shield },
   { name: "Wallet Top Up", href: "/admin/wallet", icon: Wallet },
-  {name: "Tickets", href: "/admin/tickets", icon: Ticket },
+  { name: "Tickets", href: "/admin/tickets", icon: Ticket },
 ];
 
 const create = [
   { name: "MD", href: "/admin/create/md", icon: UserCheck },
   { name: "Distributor", href: "/admin/create/distributor", icon: UserCheck },
   { name: "User", href: "/admin/create/user", icon: UserCheck },
-
 ]
+
 const info = [
   { name: "MD", href: "/admin/info/md", icon: UserCheck },
   { name: "Distributor", href: "/admin/info/distributor", icon: UserCheck },
@@ -84,17 +71,8 @@ const info = [
 ]
 
 const fundsSubMenu = [
-  // { name: 'E-Wallet History', href: '/admin/funds/history', icon: History },
   { name: "Fund Request", href: "/admin/funds/request", icon: Send },
-  // { name: 'E-Wallet Transfer', href: '/admin/funds/transfer', icon: ArrowLeftRight },
-  // { name: 'E-Wallet Request Reversal', href: '/admin/funds/reversal', icon: RotateCcw },
-  // { name: 'E-Wallet Request Edit', href: '/admin/funds/edit', icon: Edit },
-  // { name: 'Amount Revert', href: '/admin/funds/revert', icon: Undo },
-  // { name: 'Bank Mapping', href: '/admin/funds/mapping', icon: MapPin },
-];
-
-const refundSubMenu = [
-  { name: "Refund Request", href: "/admin/refund/request", icon: RotateCcw },
+  { name: "Revert Request", href: "/admin/funds/revert", icon: RotateCcw },
 ];
 
 interface SidebarProps {
@@ -109,7 +87,6 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
   const [createExpanded, setCreateExpanded] = useState(false);
   const [infoExpanded, setInfoExpanded] = useState(false);
   const [transactionLogsExpanded, setTransactionLogsExpanded] = useState(false);
-  const [refundExpanded, setRefundExpanded] = useState(false);
 
 
   const isActive = (path: string) => {
@@ -121,11 +98,6 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
 
   const getAdminDetails = async () => {
     const token = localStorage.getItem("authToken");
-    // if (!token) {
-    //   toast.error("Authentication token not found");
-    //   return;
-
-    // } 
     const decoded = jwtDecode<JWTPayload>(token);
     setAdminDetails(decoded.data);
   };
@@ -138,7 +110,6 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
   const isCreateActive = location.pathname.startsWith("/admin/create");
   const isInfoActive = location.pathname.startsWith("/admin/info");
   const isTransactionLogsActive = location.pathname.startsWith("/admin/logs");
-  const isRefundActive = location.pathname.startsWith("/admin/refund");
 
   return (
     <>
@@ -237,7 +208,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                 )}
               </button>
 
-              {/* Funds Submenu */}
+              {/* Funds Submenu (includes Fund Request and Revert Request) */}
               {fundsExpanded && (
                 <div className="ml-6 space-y-1">
                   {fundsSubMenu.map((item) => {
@@ -448,66 +419,6 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
               {infoExpanded && (
                 <div className="ml-6 space-y-1">
                   {info.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <NavLink
-                        key={item.name}
-                        to={item.href}
-                        className={cn(
-                          "group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200",
-                          isActive(item.href)
-                            ? "bg-primary/10 text-primary border-l-2 border-primary"
-                            : "text-muted-foreground hover:bg-secondary/50 hover:text-secondary-foreground"
-                        )}
-                        onClick={() => setIsOpen(false)}
-                      >
-                        <Icon
-                          className={cn(
-                            "mr-3 h-4 w-4 flex-shrink-0 transition-colors",
-                            isActive(item.href)
-                              ? "text-primary"
-                              : "text-muted-foreground group-hover:text-secondary-foreground"
-                          )}
-                        />
-                        {item.name}
-                      </NavLink>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* Refund Request Dropdown */}
-              <button
-                onClick={() => setRefundExpanded(!refundExpanded)}
-                className={cn(
-                  "group flex items-center justify-between w-full px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200",
-                  isRefundActive
-                    ? "gradient-primary text-primary-foreground shadow-glow"
-                    : "text-muted-foreground hover:bg-secondary hover:text-secondary-foreground"
-                )}
-              >
-                <div className="flex items-center">
-                  <RotateCcw
-                    className={cn(
-                      "mr-3 h-5 w-5 flex-shrink-0 transition-colors",
-                      isRefundActive
-                        ? "text-primary-foreground"
-                        : "text-muted-foreground group-hover:text-secondary-foreground"
-                    )}
-                  />
-                  Refund
-                </div>
-                {refundExpanded ? (
-                  <ChevronDown className="h-4 w-4" />
-                ) : (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-              </button>
-
-              {/* Refund Submenu */}
-              {refundExpanded && (
-                <div className="ml-6 space-y-1">
-                  {refundSubMenu.map((item) => {
                     const Icon = item.icon;
                     return (
                       <NavLink

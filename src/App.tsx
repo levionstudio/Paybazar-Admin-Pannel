@@ -100,7 +100,7 @@ const App = () => {
               <Route path="analytics" element={<Analytics />} />
               <Route path="security" element={<Security />} />
               <Route path="tickets" element={<Tickets />} />
-              <Route path="/admin/refund/request" element={<RefundRequest />} />
+              <Route path="/admin/funds/revert" element={<RefundRequest />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />

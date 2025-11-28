@@ -237,11 +237,15 @@ export default function RefundRequest() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-card-foreground">
-          Refund Request
-        </h1>
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Revert Request</h1>
+          <p className="text-muted-foreground mt-1">
+            Process Revert requests for Master Distributors, Distributors, and Retailers
+          </p>
+        </div>
         <Button
           variant="outline"
           onClick={handleReset}
@@ -254,7 +258,7 @@ export default function RefundRequest() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Process Refund</CardTitle>
+          <CardTitle>Process Revert</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* User Type Selection */}
@@ -364,7 +368,7 @@ export default function RefundRequest() {
           {/* Refund Amount */}
           <div className="space-y-2">
             <Label htmlFor="amount" className="text-sm font-medium">
-              Refund Amount
+              Revert Amount
             </Label>
             <Input
               id="amount"
@@ -377,7 +381,7 @@ export default function RefundRequest() {
                   setAmount(value);
                 }
               }}
-              placeholder="Enter amount to refund"
+              placeholder="Enter amount to revert"
               style={{ fontSize: "16px" }}
               disabled={!userDetails}
             />
@@ -392,7 +396,7 @@ export default function RefundRequest() {
             {isProcessing ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Processing Refund...
+                Processing Revert...
               </>
             ) : (
               "Process Refund"

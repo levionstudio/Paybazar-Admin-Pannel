@@ -50,6 +50,7 @@ interface PayoutTransaction {
   phone_number: string;
   bank_name: string;
   beneficiary_name: string;
+  account_number: string;
   amount: string;
   commission: string;
   transfer_type: string;
@@ -296,6 +297,9 @@ const PayoutTransactionPage = () => {
                         <TableHead className="text-center whitespace-nowrap">
                           Beneficiary
                         </TableHead>
+                         <TableHead className="text-center whitespace-nowrap">
+                          Account Number
+                        </TableHead>
                         <TableHead className="text-center whitespace-nowrap">
                           Amount
                         </TableHead>
@@ -334,6 +338,9 @@ const PayoutTransactionPage = () => {
                             </TableCell>
                             <TableCell className="text-center">
                               {tx.beneficiary_name}
+                            </TableCell>
+                              <TableCell className="text-center">
+                              {tx.account_number}
                             </TableCell>
                             <TableCell className="font-semibold text-center whitespace-nowrap">
                               ₹{formatAmount(tx.amount)}
@@ -440,6 +447,12 @@ const PayoutTransactionPage = () => {
                     Beneficiary Name
                   </Label>
                   <p className="text-sm">{selectedTransaction.beneficiary_name}</p>
+                </div>
+                 <div className="space-y-1">
+                  <Label className="text-sm font-medium text-muted-foreground">
+                    Account Number
+                  </Label>
+                  <p className="text-sm">{selectedTransaction.account_number}</p>
                 </div>
                 <div className="space-y-1">
                   <Label className="text-sm font-medium text-muted-foreground">
