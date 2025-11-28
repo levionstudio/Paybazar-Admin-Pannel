@@ -52,32 +52,32 @@ const recentActivities = [
 const stats = [
   {
     title: 'Total Revenue',
-    value: '₹12,45,678',
-    change: '+12.5%',
+    value: '₹0',
+    change: '+0%',
     icon: DollarSign,
     description: 'From last month',
     color: 'text-success'
   },
   {
     title: 'Active Users',
-    value: '2,847',
-    change: '+5.2%',
+    value: '0',
+    change: '+0%',
     icon: Users,
     description: 'Retailers & Distributors',
     color: 'text-primary'
   },
   {
     title: 'Total Transactions',
-    value: '34,567',
-    change: '+8.1%',
+    value: '0',
+    change: '0%',
     icon: CreditCard,
     description: 'This month',
     color: 'text-accent'
   },
   {
     title: 'Pending KYCs',
-    value: '23',
-    change: '-2.4%',
+    value: '0',
+    change: '-0%',
     icon: UserCheck,
     description: 'Awaiting review',
     color: 'text-warning'

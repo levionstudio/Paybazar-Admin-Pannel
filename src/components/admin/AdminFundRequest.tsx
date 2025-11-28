@@ -36,7 +36,7 @@ interface JWTPayload {
 }
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://64.227.165.232:8080";
+  import.meta.env.VITE_API_BASE_URL ;
 
 export function FundRequest() {
   const [requests, setRequests] = useState<FundRequest[]>([]);

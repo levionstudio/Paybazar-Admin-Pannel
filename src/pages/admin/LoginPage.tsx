@@ -59,7 +59,7 @@ export function LoginPage() {
         });
 
         localStorage.setItem("authToken", data.data.token);
-        navigate("/admin/funds/request");
+        navigate("/admin");
       } else {
         setError(data.message || "Invalid email or password");
       }

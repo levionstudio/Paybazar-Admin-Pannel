@@ -45,7 +45,7 @@ interface JWTPayload {
 
 
 const navigation = [
-  // { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+ { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
   // { name: 'User Management', href: '/admin/users', icon: Users },
 ];
 
@@ -93,6 +93,10 @@ const fundsSubMenu = [
   // { name: 'Bank Mapping', href: '/admin/funds/mapping', icon: MapPin },
 ];
 
+const refundSubMenu = [
+  { name: "Refund Request", href: "/admin/refund/request", icon: RotateCcw },
+];
+
 interface SidebarProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
@@ -105,6 +109,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
   const [createExpanded, setCreateExpanded] = useState(false);
   const [infoExpanded, setInfoExpanded] = useState(false);
   const [transactionLogsExpanded, setTransactionLogsExpanded] = useState(false);
+  const [refundExpanded, setRefundExpanded] = useState(false);
 
 
   const isActive = (path: string) => {
@@ -133,6 +138,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
   const isCreateActive = location.pathname.startsWith("/admin/create");
   const isInfoActive = location.pathname.startsWith("/admin/info");
   const isTransactionLogsActive = location.pathname.startsWith("/admin/logs");
+  const isRefundActive = location.pathname.startsWith("/admin/refund");
 
   return (
     <>
@@ -260,8 +266,6 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                       </NavLink>
                     );
                   })}
-
-                  
                 </div>
               )}
 
@@ -352,7 +356,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                 );
               })}
 
-                {/* Funds Dropdown */}
+              {/* Create Dropdown */}
               <button
                 onClick={() => setCreateExpanded(!createExpanded)}
                 className={cn(
@@ -380,7 +384,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                 )}
               </button>
 
-              {/* Funds Submenu */}
+              {/* Create Submenu */}
               {createExpanded && (
                 <div className="ml-6 space-y-1">
                   {create.map((item) => {
@@ -409,8 +413,6 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                       </NavLink>
                     );
                   })}
-
-                  
                 </div>
               )}
 
@@ -474,10 +476,66 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                 </div>
               )}
 
-              
-            </div>
+              {/* Refund Request Dropdown */}
+              <button
+                onClick={() => setRefundExpanded(!refundExpanded)}
+                className={cn(
+                  "group flex items-center justify-between w-full px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200",
+                  isRefundActive
+                    ? "gradient-primary text-primary-foreground shadow-glow"
+                    : "text-muted-foreground hover:bg-secondary hover:text-secondary-foreground"
+                )}
+              >
+                <div className="flex items-center">
+                  <RotateCcw
+                    className={cn(
+                      "mr-3 h-5 w-5 flex-shrink-0 transition-colors",
+                      isRefundActive
+                        ? "text-primary-foreground"
+                        : "text-muted-foreground group-hover:text-secondary-foreground"
+                    )}
+                  />
+                  Refund
+                </div>
+                {refundExpanded ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </button>
 
-            
+              {/* Refund Submenu */}
+              {refundExpanded && (
+                <div className="ml-6 space-y-1">
+                  {refundSubMenu.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <NavLink
+                        key={item.name}
+                        to={item.href}
+                        className={cn(
+                          "group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200",
+                          isActive(item.href)
+                            ? "bg-primary/10 text-primary border-l-2 border-primary"
+                            : "text-muted-foreground hover:bg-secondary/50 hover:text-secondary-foreground"
+                        )}
+                        onClick={() => setIsOpen(false)}
+                      >
+                        <Icon
+                          className={cn(
+                            "mr-3 h-4 w-4 flex-shrink-0 transition-colors",
+                            isActive(item.href)
+                              ? "text-primary"
+                              : "text-muted-foreground group-hover:text-secondary-foreground"
+                          )}
+                        />
+                        {item.name}
+                      </NavLink>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </nav>
           
 

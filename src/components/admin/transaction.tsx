@@ -223,9 +223,7 @@ const UserWalletTransactions = () => {
                             <TableHead className="text-center whitespace-nowrap">
                               Status
                             </TableHead>
-                            <TableHead className="text-center whitespace-nowrap">
-                              Remarks
-                            </TableHead>
+                          
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -273,9 +271,7 @@ const UserWalletTransactions = () => {
                                 <TableCell className="text-center">
                                   {getStatusBadge(tx.transaction_status)}
                                 </TableCell>
-                                <TableCell className="text-center max-w-xs truncate">
-                                  {tx.remarks || "N/A"}
-                                </TableCell>
+                             
                               </TableRow>
                             ))
                           )}

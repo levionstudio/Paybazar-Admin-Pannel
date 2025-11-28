@@ -28,6 +28,7 @@ import GetAllDistributor from "./components/admin/GetallDistributors";
 import GetAllUsers from "./components/admin/GetAllUsers";
 import { Tickets } from "./components/admin/Tickets";
 import PayoutTransactionPage from "./components/admin/PayoutTransaction";
+import RefundRequest from "./components/admin/refundrequest";
 
 const queryClient = new QueryClient();
 
@@ -99,6 +100,7 @@ const App = () => {
               <Route path="analytics" element={<Analytics />} />
               <Route path="security" element={<Security />} />
               <Route path="tickets" element={<Tickets />} />
+              <Route path="/admin/refund/request" element={<RefundRequest />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
