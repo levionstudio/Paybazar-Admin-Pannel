@@ -67,7 +67,7 @@ const PayoutTransactionPage = () => {
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [loadingTransactions, setLoadingTransactions] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
+  const itemsPerPage = 10;
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<PayoutTransaction | null>(null);
 
@@ -208,6 +208,28 @@ const PayoutTransactionPage = () => {
   const endIndex = startIndex + itemsPerPage;
   const paginatedTransactions = transactions.slice(startIndex, endIndex);
 
+  // Generate page numbers to show (max 10 visible page buttons)
+  const getPageNumbers = () => {
+    const maxVisiblePages = 10;
+    
+    if (totalPages <= maxVisiblePages) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    const halfVisible = Math.floor(maxVisiblePages / 2);
+    let startPage = Math.max(1, currentPage - halfVisible);
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage < maxVisiblePages - 1) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    return Array.from(
+      { length: endPage - startPage + 1 },
+      (_, i) => startPage + i
+    );
+  };
+
   if (loadingUsers) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -275,109 +297,107 @@ const PayoutTransactionPage = () => {
       {selectedUserId && (
         <Card>
           <CardContent className="p-0">
-            <div>
-              <div className="max-h-[600px] max-w-7xl overflow-y-auto">
-                {loadingTransactions ? (
-                  <div className="flex items-center justify-center py-20">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  </div>
-                ) : (
-                  <Table className="w-full">
-                    <TableHeader className="sticky top-0 bg-background z-10">
+            {loadingTransactions ? (
+              <div className="flex items-center justify-center py-20">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table className="w-full">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-center whitespace-nowrap">
+                        Transaction ID
+                      </TableHead>
+                      <TableHead className="text-center whitespace-nowrap">
+                        Phone Number
+                      </TableHead>
+                      <TableHead className="text-center whitespace-nowrap">
+                        Bank Name
+                      </TableHead>
+                      <TableHead className="text-center whitespace-nowrap">
+                        Beneficiary
+                      </TableHead>
+                      <TableHead className="text-center whitespace-nowrap">
+                        Account Number
+                      </TableHead>
+                      <TableHead className="text-center whitespace-nowrap">
+                        Amount
+                      </TableHead>
+                      <TableHead className="text-center whitespace-nowrap">
+                        Status
+                      </TableHead>
+                      <TableHead className="text-center whitespace-nowrap">
+                        Date & Time
+                      </TableHead>
+                      <TableHead className="text-center whitespace-nowrap">
+                        Actions
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedTransactions.length === 0 ? (
                       <TableRow>
-                        <TableHead className="text-center whitespace-nowrap">
-                          Transaction ID
-                        </TableHead>
-                        <TableHead className="text-center whitespace-nowrap">
-                          Phone Number
-                        </TableHead>
-                        <TableHead className="text-center whitespace-nowrap">
-                          Bank Name
-                        </TableHead>
-                        <TableHead className="text-center whitespace-nowrap">
-                          Beneficiary
-                        </TableHead>
-                         <TableHead className="text-center whitespace-nowrap">
-                          Account Number
-                        </TableHead>
-                        <TableHead className="text-center whitespace-nowrap">
-                          Amount
-                        </TableHead>
-                        <TableHead className="text-center whitespace-nowrap">
-                          Status
-                        </TableHead>
-                        <TableHead className="text-center whitespace-nowrap">
-                          Date & Time
-                        </TableHead>
-                        <TableHead className="text-center whitespace-nowrap">
-                          Actions
-                        </TableHead>
+                        <TableCell
+                          colSpan={9}
+                          className="text-center text-muted-foreground py-8"
+                        >
+                          No transactions found
+                        </TableCell>
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {paginatedTransactions.length === 0 ? (
-                        <TableRow>
-                          <TableCell
-                            colSpan={8}
-                            className="text-center text-muted-foreground py-8"
-                          >
-                            No transactions found
+                    ) : (
+                      paginatedTransactions.map((tx) => (
+                        <TableRow key={tx.transaction_id}>
+                          <TableCell className="font-mono text-center whitespace-nowrap">
+                            {tx.transaction_id}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {tx.phone_number}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {tx.bank_name}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {tx.beneficiary_name}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {tx.account_number}
+                          </TableCell>
+                          <TableCell className="font-semibold text-center whitespace-nowrap">
+                            ₹{formatAmount(tx.amount)}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {getStatusBadge(tx.transaction_status)}
+                          </TableCell>
+                          <TableCell className="text-center whitespace-nowrap">
+                            {formatDate(tx.transaction_date_and_time)}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleViewDetails(tx)}
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              View
+                            </Button>
                           </TableCell>
                         </TableRow>
-                      ) : (
-                        paginatedTransactions.map((tx) => (
-                          <TableRow key={tx.transaction_id}>
-                            <TableCell className="font-mono text-center whitespace-nowrap">
-                              {tx.transaction_id}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {tx.phone_number}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {tx.bank_name}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {tx.beneficiary_name}
-                            </TableCell>
-                              <TableCell className="text-center">
-                              {tx.account_number}
-                            </TableCell>
-                            <TableCell className="font-semibold text-center whitespace-nowrap">
-                              ₹{formatAmount(tx.amount)}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {getStatusBadge(tx.transaction_status)}
-                            </TableCell>
-                            <TableCell className="text-center whitespace-nowrap">
-                              {formatDate(tx.transaction_date_and_time)}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleViewDetails(tx)}
-                              >
-                                <Eye className="h-4 w-4 mr-1" />
-                                View
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                )}
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
               </div>
-            </div>
+            )}
           </CardContent>
 
           {transactions.length > 0 && (
-            <div className="flex items-center justify-between px-6 py-4 border-t">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t">
               <p className="text-sm text-muted-foreground">
                 Showing {startIndex + 1} to {Math.min(endIndex, transactions.length)} of{" "}
                 {transactions.length} transactions
               </p>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap justify-center">
                 <Button
                   variant="outline"
                   size="sm"
@@ -386,8 +406,8 @@ const PayoutTransactionPage = () => {
                 >
                   Previous
                 </Button>
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <div className="flex items-center gap-1 flex-wrap">
+                  {getPageNumbers().map((page) => (
                     <Button
                       key={page}
                       variant={currentPage === page ? "default" : "outline"}
@@ -448,7 +468,7 @@ const PayoutTransactionPage = () => {
                   </Label>
                   <p className="text-sm">{selectedTransaction.beneficiary_name}</p>
                 </div>
-                 <div className="space-y-1">
+                <div className="space-y-1">
                   <Label className="text-sm font-medium text-muted-foreground">
                     Account Number
                   </Label>

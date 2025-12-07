@@ -27,6 +27,7 @@ import {
   MapPin,
   Info,
   Ticket,
+  RefreshCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -51,6 +52,8 @@ const navigation = [
 const transactionLogsSubMenu = [
   { name: "Admin Transaction", href: "/admin/logs", icon: FileText },
   { name: "Payout Transaction", href: "/admin/logs/payout", icon: FileText },
+  // { name: "Revert History", href: "/admin/logs/revert-history", icon: History },
+  // { name: "Refund History", href: "/admin/logs/refund-history", icon: RefreshCcw },
 ];
 
 const navigations = [
@@ -73,6 +76,7 @@ const info = [
 const fundsSubMenu = [
   { name: "Fund Request", href: "/admin/funds/request", icon: Send },
   { name: "Revert Request", href: "/admin/funds/revert", icon: RotateCcw },
+  // { name: "Refund", href: "/admin/funds/refund", icon: RefreshCcw },
 ];
 
 interface SidebarProps {
@@ -208,7 +212,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                 )}
               </button>
 
-              {/* Funds Submenu (includes Fund Request and Revert Request) */}
+              {/* Funds Submenu (includes Fund Request, Revert Request, and Refund) */}
               {fundsExpanded && (
                 <div className="ml-6 space-y-1">
                   {fundsSubMenu.map((item) => {

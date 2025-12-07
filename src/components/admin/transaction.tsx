@@ -47,7 +47,7 @@ const UserWalletTransactions = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
+  const itemsPerPage = 10;
 
   // ✅ Decode token
   useEffect(() => {
@@ -172,13 +172,31 @@ const UserWalletTransactions = () => {
   const endIndex = startIndex + itemsPerPage;
   const paginatedTransactions = transactions.slice(startIndex, endIndex);
 
+  // Generate page numbers to show (max 10 visible page buttons)
+  const getPageNumbers = () => {
+    const maxVisiblePages = 10;
+    
+    if (totalPages <= maxVisiblePages) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    const halfVisible = Math.floor(maxVisiblePages / 2);
+    let startPage = Math.max(1, currentPage - halfVisible);
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage < maxVisiblePages - 1) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    return Array.from(
+      { length: endPage - startPage + 1 },
+      (_, i) => startPage + i
+    );
+  };
+
   return (
     <div className="flex min-h-screen w-full bg-background">
-
-
       <div className="flex-1 flex flex-col min-w-0">
-
-
         <div className="flex-1 p-6 overflow-y-auto">
           <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -203,93 +221,89 @@ const UserWalletTransactions = () => {
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                   </div>
                 ) : (
-                  <div>
-                    <div className="max-h-[600px]  overflow-y-auto ">
-                      <Table className="w-full">
-                        <TableHeader className="sticky top-0 bg-background z-10">
+                  <div className="overflow-x-auto">
+                    <Table className="w-full">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="text-center whitespace-nowrap">
+                            Transactor
+                          </TableHead>
+                          <TableHead className="text-center whitespace-nowrap">
+                            Receiver
+                          </TableHead>
+                          <TableHead className="text-center whitespace-nowrap">
+                            Type
+                          </TableHead>
+                          <TableHead className="text-center whitespace-nowrap">
+                            Amount
+                          </TableHead>
+                          <TableHead className="text-center whitespace-nowrap">
+                            Status
+                          </TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {paginatedTransactions.length === 0 ? (
                           <TableRow>
-                            <TableHead className="text-center whitespace-nowrap">
-                              Transactor
-                            </TableHead>
-                            <TableHead className="text-center whitespace-nowrap">
-                              Receiver
-                            </TableHead>
-                            <TableHead className="text-center whitespace-nowrap">
-                              Type
-                            </TableHead>
-                            <TableHead className="text-center whitespace-nowrap">
-                              Amount
-                            </TableHead>
-                            <TableHead className="text-center whitespace-nowrap">
-                              Status
-                            </TableHead>
-                          
+                            <TableCell
+                              colSpan={5}
+                              className="text-center text-muted-foreground py-8"
+                            >
+                              No transactions found
+                            </TableCell>
                           </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {paginatedTransactions.length === 0 ? (
-                            <TableRow>
-                              <TableCell
-                                colSpan={6}
-                                className="text-center text-muted-foreground py-8"
-                              >
-                                No transactions found
+                        ) : (
+                          paginatedTransactions.map((tx) => (
+                            <TableRow key={tx.transaction_id}>
+                              <TableCell className="text-center">
+                                <div>
+                                  <span className="font-medium">
+                                    {tx.transactor_name}
+                                  </span>
+                                  <div className="text-xs text-muted-foreground">
+                                    {tx.transactor_type}
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <div>
+                                  <span className="font-medium">
+                                    {tx.receiver_name}
+                                  </span>
+                                  <div className="text-xs text-muted-foreground">
+                                    {tx.receiver_type}
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {getTransactionTypeBadge(tx.transaction_type)}
+                              </TableCell>
+                              <TableCell className="font-semibold text-center whitespace-nowrap">
+                                ₹
+                                {parseFloat(tx.amount).toLocaleString(
+                                  "en-IN"
+                                )}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {getStatusBadge(tx.transaction_status)}
                               </TableCell>
                             </TableRow>
-                          ) : (
-                            paginatedTransactions.map((tx) => (
-                              <TableRow key={tx.transaction_id}>
-                                <TableCell className="text-center">
-                                  <div>
-                                    <span className="font-medium">
-                                      {tx.transactor_name}
-                                    </span>
-                                    <div className="text-xs text-muted-foreground">
-                                      {tx.transactor_type}
-                                    </div>
-                                  </div>
-                                </TableCell>
-                                <TableCell className="text-center">
-                                  <div>
-                                    <span className="font-medium">
-                                      {tx.receiver_name}
-                                    </span>
-                                    <div className="text-xs text-muted-foreground">
-                                      {tx.receiver_type}
-                                    </div>
-                                  </div>
-                                </TableCell>
-                                <TableCell className="text-center">
-                                  {getTransactionTypeBadge(tx.transaction_type)}
-                                </TableCell>
-                                <TableCell className="font-semibold text-center whitespace-nowrap">
-                                  ₹
-                                  {parseFloat(tx.amount).toLocaleString(
-                                    "en-IN"
-                                  )}
-                                </TableCell>
-                                <TableCell className="text-center">
-                                  {getStatusBadge(tx.transaction_status)}
-                                </TableCell>
-                             
-                              </TableRow>
-                            ))
-                          )}
-                        </TableBody>
-                      </Table>
-                    </div>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
                   </div>
                 )}
               </CardContent>
 
               {transactions.length > 0 && (
-                <div className="flex items-center justify-between px-6 py-4 border-t">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t">
                   <p className="text-sm text-muted-foreground">
                     Showing {startIndex + 1} to{" "}
                     {Math.min(endIndex, transactions.length)} of{" "}
                     {transactions.length} transactions
                   </p>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap justify-center">
                     <Button
                       variant="outline"
                       size="sm"
@@ -300,22 +314,20 @@ const UserWalletTransactions = () => {
                     >
                       Previous
                     </Button>
-                    <div className="flex items-center gap-1">
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                        (page) => (
-                          <Button
-                            key={page}
-                            variant={
-                              currentPage === page ? "default" : "outline"
-                            }
-                            size="sm"
-                            onClick={() => setCurrentPage(page)}
-                            className="w-10"
-                          >
-                            {page}
-                          </Button>
-                        )
-                      )}
+                    <div className="flex items-center gap-1 flex-wrap">
+                      {getPageNumbers().map((page) => (
+                        <Button
+                          key={page}
+                          variant={
+                            currentPage === page ? "default" : "outline"
+                          }
+                          size="sm"
+                          onClick={() => setCurrentPage(page)}
+                          className="w-10"
+                        >
+                          {page}
+                        </Button>
+                      ))}
                     </div>
                     <Button
                       variant="outline"
