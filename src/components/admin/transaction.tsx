@@ -38,6 +38,9 @@ interface Transaction {
   amount: string;
   transaction_status: string;
   remarks: string;
+  transaction_date?: string;
+  created_at?: string;
+  timestamp?: string;
 }
 
 const UserWalletTransactions = () => {
@@ -106,7 +109,28 @@ const UserWalletTransactions = () => {
       );
 
       if (res.data.status === "success") {
-        setTransactions(res.data.data || []);
+        const transactionsList = res.data.data || [];
+        
+        // Sort transactions by date/time (latest first)
+        // Try different possible date field names
+        const sortedTransactions = transactionsList.sort((a: Transaction, b: Transaction) => {
+          // Try to get timestamp from various possible fields
+          const getTimestamp = (tx: Transaction) => {
+            const dateField = tx.transaction_date || tx.created_at || tx.timestamp;
+            if (dateField) {
+              return new Date(dateField).getTime();
+            }
+            // If no date field, use transaction_id as fallback (assuming newer IDs are larger)
+            return parseInt(tx.transaction_id) || 0;
+          };
+          
+          const timeA = getTimestamp(a);
+          const timeB = getTimestamp(b);
+          
+          return timeB - timeA; // Descending order (newest first)
+        });
+        
+        setTransactions(sortedTransactions);
         toast({
           title: "Success",
           description: "Transactions loaded successfully",
@@ -205,7 +229,7 @@ const UserWalletTransactions = () => {
                   Wallet Transactions
                 </h1>
                 <p className="text-muted-foreground mt-1">
-                  View your wallet transaction history
+                  View your wallet transaction history (Latest first)
                 </p>
               </div>
               <Button onClick={fetchTransactions} variant="outline" size="sm">
@@ -222,76 +246,76 @@ const UserWalletTransactions = () => {
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
-                    <Table className="w-full">
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="text-center whitespace-nowrap">
+                    <table className="w-full border-collapse">
+                      <thead className="bg-muted/50 sticky top-0 z-10">
+                        <tr>
+                          <th className="text-center whitespace-nowrap px-4 py-3 text-sm font-semibold border-b">
                             Transactor
-                          </TableHead>
-                          <TableHead className="text-center whitespace-nowrap">
+                          </th>
+                          <th className="text-center whitespace-nowrap px-4 py-3 text-sm font-semibold border-b">
                             Receiver
-                          </TableHead>
-                          <TableHead className="text-center whitespace-nowrap">
+                          </th>
+                          <th className="text-center whitespace-nowrap px-4 py-3 text-sm font-semibold border-b">
                             Type
-                          </TableHead>
-                          <TableHead className="text-center whitespace-nowrap">
+                          </th>
+                          <th className="text-center whitespace-nowrap px-4 py-3 text-sm font-semibold border-b">
                             Amount
-                          </TableHead>
-                          <TableHead className="text-center whitespace-nowrap">
+                          </th>
+                          <th className="text-center whitespace-nowrap px-4 py-3 text-sm font-semibold border-b">
                             Status
-                          </TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
                         {paginatedTransactions.length === 0 ? (
-                          <TableRow>
-                            <TableCell
+                          <tr>
+                            <td
                               colSpan={5}
                               className="text-center text-muted-foreground py-8"
                             >
                               No transactions found
-                            </TableCell>
-                          </TableRow>
+                            </td>
+                          </tr>
                         ) : (
                           paginatedTransactions.map((tx) => (
-                            <TableRow key={tx.transaction_id}>
-                              <TableCell className="text-center">
+                            <tr key={tx.transaction_id} className="border-b hover:bg-muted/30 transition-colors">
+                              <td className="text-center px-4 py-3">
                                 <div>
-                                  <span className="font-medium">
+                                  <span className="font-medium text-sm">
                                     {tx.transactor_name}
                                   </span>
                                   <div className="text-xs text-muted-foreground">
                                     {tx.transactor_type}
                                   </div>
                                 </div>
-                              </TableCell>
-                              <TableCell className="text-center">
+                              </td>
+                              <td className="text-center px-4 py-3">
                                 <div>
-                                  <span className="font-medium">
+                                  <span className="font-medium text-sm">
                                     {tx.receiver_name}
                                   </span>
                                   <div className="text-xs text-muted-foreground">
                                     {tx.receiver_type}
                                   </div>
                                 </div>
-                              </TableCell>
-                              <TableCell className="text-center">
+                              </td>
+                              <td className="text-center px-4 py-3">
                                 {getTransactionTypeBadge(tx.transaction_type)}
-                              </TableCell>
-                              <TableCell className="font-semibold text-center whitespace-nowrap">
+                              </td>
+                              <td className="font-semibold text-center whitespace-nowrap px-4 py-3 text-sm">
                                 ₹
                                 {parseFloat(tx.amount).toLocaleString(
                                   "en-IN"
                                 )}
-                              </TableCell>
-                              <TableCell className="text-center">
+                              </td>
+                              <td className="text-center px-4 py-3">
                                 {getStatusBadge(tx.transaction_status)}
-                              </TableCell>
-                            </TableRow>
+                              </td>
+                            </tr>
                           ))
                         )}
-                      </TableBody>
-                    </Table>
+                      </tbody>
+                    </table>
                   </div>
                 )}
               </CardContent>

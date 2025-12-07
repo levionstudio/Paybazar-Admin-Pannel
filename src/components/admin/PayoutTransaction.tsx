@@ -138,8 +138,16 @@ const PayoutTransactionPage = () => {
 
       if (response.data.status === "success" && response.data.data) {
         const transactionsList = response.data.data.transactions || [];
-        setTransactions(transactionsList);
-        toast.success(`Loaded ${transactionsList.length} transactions`);
+        
+        // Sort transactions by date (latest first)
+        const sortedTransactions = transactionsList.sort((a: PayoutTransaction, b: PayoutTransaction) => {
+          const dateA = new Date(a.transaction_date_and_time).getTime();
+          const dateB = new Date(b.transaction_date_and_time).getTime();
+          return dateB - dateA; // Descending order (newest first)
+        });
+        
+        setTransactions(sortedTransactions);
+        toast.success(`Loaded ${sortedTransactions.length} transactions`);
       } else {
         setTransactions([]);
       }
@@ -245,7 +253,7 @@ const PayoutTransactionPage = () => {
         <div>
           <h1 className="text-3xl font-bold text-foreground">Payout Transactions</h1>
           <p className="text-muted-foreground mt-1">
-            View payout transaction history by user
+            View payout transaction history by user (Latest first)
           </p>
         </div>
         {selectedUserId && (
@@ -313,15 +321,6 @@ const PayoutTransactionPage = () => {
                         Phone Number
                       </TableHead>
                       <TableHead className="text-center whitespace-nowrap">
-                        Bank Name
-                      </TableHead>
-                      <TableHead className="text-center whitespace-nowrap">
-                        Beneficiary
-                      </TableHead>
-                      <TableHead className="text-center whitespace-nowrap">
-                        Account Number
-                      </TableHead>
-                      <TableHead className="text-center whitespace-nowrap">
                         Amount
                       </TableHead>
                       <TableHead className="text-center whitespace-nowrap">
@@ -339,7 +338,7 @@ const PayoutTransactionPage = () => {
                     {paginatedTransactions.length === 0 ? (
                       <TableRow>
                         <TableCell
-                          colSpan={9}
+                          colSpan={6}
                           className="text-center text-muted-foreground py-8"
                         >
                           No transactions found
@@ -353,15 +352,6 @@ const PayoutTransactionPage = () => {
                           </TableCell>
                           <TableCell className="text-center">
                             {tx.phone_number}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {tx.bank_name}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {tx.beneficiary_name}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {tx.account_number}
                           </TableCell>
                           <TableCell className="font-semibold text-center whitespace-nowrap">
                             ₹{formatAmount(tx.amount)}
@@ -378,8 +368,8 @@ const PayoutTransactionPage = () => {
                               size="sm"
                               onClick={() => handleViewDetails(tx)}
                             >
-                              <Eye className="h-4 w-4 mr-1" />
-                              View
+                              <Eye className="h-4 w-4 mr-2" />
+                              Show Details
                             </Button>
                           </TableCell>
                         </TableRow>
