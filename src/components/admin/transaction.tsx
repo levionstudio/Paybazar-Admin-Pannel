@@ -196,21 +196,18 @@ const UserWalletTransactions = () => {
   const endIndex = startIndex + itemsPerPage;
   const paginatedTransactions = transactions.slice(startIndex, endIndex);
 
-  // Generate page numbers to show (max 10 visible page buttons)
+  // Generate page numbers to show (max 5 visible page buttons)
   const getPageNumbers = () => {
-    const maxVisiblePages = 10;
+    const maxVisiblePages = 5;
     
     if (totalPages <= maxVisiblePages) {
       return Array.from({ length: totalPages }, (_, i) => i + 1);
     }
 
-    const halfVisible = Math.floor(maxVisiblePages / 2);
-    let startPage = Math.max(1, currentPage - halfVisible);
-    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-
-    if (endPage - startPage < maxVisiblePages - 1) {
-      startPage = Math.max(1, endPage - maxVisiblePages + 1);
-    }
+    // Calculate which group of 5 pages to show
+    const pageGroup = Math.ceil(currentPage / maxVisiblePages);
+    const startPage = (pageGroup - 1) * maxVisiblePages + 1;
+    const endPage = Math.min(startPage + maxVisiblePages - 1, totalPages);
 
     return Array.from(
       { length: endPage - startPage + 1 },
