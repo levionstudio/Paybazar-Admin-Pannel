@@ -28,8 +28,9 @@ import GetAllDistributor from "./components/admin/GetallDistributors";
 import GetAllUsers from "./components/admin/GetAllUsers";
 import { Tickets } from "./components/admin/Tickets";
 import PayoutTransactionPage from "./components/admin/PayoutTransaction";
-import RefundRequest from "./components/admin/refundrequest";
+import RefundRequest from "./components/admin/revertrequest";
 import RefundPage from "./components/admin/RefundPage";
+import RevertHistoryPage from "./components/admin/RevertHistory";
 
 const queryClient = new QueryClient();
 
@@ -102,7 +103,8 @@ const App = () => {
               <Route path="security" element={<Security />} />
               <Route path="tickets" element={<Tickets />} />
               <Route path="/admin/funds/revert" element={<RefundRequest />} />
-              {/* <Route path="/admin/funds/refund" element={<RefundPage />} /> */}
+              <Route path="/admin/funds/refund" element={<RefundPage />} />
+              <Route path="/admin/funds/revert/history" element={<RevertHistoryPage />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />

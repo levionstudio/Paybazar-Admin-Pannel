@@ -138,12 +138,13 @@ const PayoutTransactionPage = () => {
 
       if (response.data.status === "success" && response.data.data) {
         const transactionsList = response.data.data.transactions || [];
-        
+
         // Sort transactions by date (latest first)
         const sortedTransactions = transactionsList.sort((a: PayoutTransaction, b: PayoutTransaction) => {
           const dateA = new Date(a.transaction_date_and_time).getTime();
           const dateB = new Date(b.transaction_date_and_time).getTime();
           return dateB - dateA; // Descending order (newest first)
+          
         });
         
         setTransactions(sortedTransactions);
@@ -168,20 +169,39 @@ const PayoutTransactionPage = () => {
     }
   }, [selectedUserId]);
 
-  const getStatusBadge = (status: string) => {
-    return status === "SUCCESS" ? (
-      <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
-        Success
-      </Badge>
-    ) : status === "PENDING" ? (
-      <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">
-        Pending
-      </Badge>
-    ) : (
-      <Badge variant="outline" className="bg-red-50 text-red-700 border-red-300">
-        Failed
-      </Badge>
-    );
+ const getStatusBadge = (status: string) => {
+    switch (status.toUpperCase()) {
+      case "SUCCESS":
+        return (
+          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
+            Success
+          </Badge>
+        );
+      case "PENDING":
+        return (
+          <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">
+            Pending
+          </Badge>
+        );
+      case "FAILED":
+        return (
+          <Badge variant="outline" className="bg-red-50 text-red-700 border-red-300">
+            Failed
+          </Badge>
+        );
+      case "REFUND":
+        return (
+          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">
+            Refunded
+          </Badge>
+        );
+      default:
+        return (
+          <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-300">
+            {status}
+          </Badge>
+        );
+    }
   };
 
   const formatDate = (dateString: string) => {

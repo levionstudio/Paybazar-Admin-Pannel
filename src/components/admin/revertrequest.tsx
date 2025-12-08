@@ -60,7 +60,7 @@ export default function RefundRequest() {
     return endpoints[type] || "";
   };
 
-  const getRefundEndpoint = (type: string) => {
+  const getRevertEndpoint = (type: string) => {
     const baseUrl = import.meta.env.VITE_API_BASE_URL;
     const endpoints = {
       "master-distributor": `${baseUrl}/admin/md/wallet/refund`,
@@ -163,39 +163,62 @@ export default function RefundRequest() {
     }
   };
 
-  const handleRefund = async () => {
+  const handleRevert = async () => {
+    console.log("=== REVERT PROCESS STARTED ===");
+    console.log("User Details:", userDetails);
+    console.log("Amount:", amount);
+    console.log("User Type:", userType);
+    console.log("Phone Number:", phoneNumber);
+
     if (!userDetails) {
+      console.error("❌ User details not found");
       toast.error("Please search for a user first");
       return;
     }
 
     if (!amount || parseFloat(amount) <= 0) {
+      console.error("❌ Invalid amount:", amount);
       toast.error("Please enter a valid amount");
       return;
     }
 
     // Check if user has sufficient balance
-    const refundAmount = parseFloat(amount);
-    if (refundAmount > userDetails.currentBalance) {
+    const revertAmount = parseFloat(amount);
+    console.log("Revert Amount:", revertAmount);
+    console.log("Current Balance:", userDetails.currentBalance);
+
+    if (revertAmount > userDetails.currentBalance) {
       const userTypeText = userType === "master-distributor" 
         ? "Master Distributor" 
         : userType === "distributor" 
         ? "Distributor" 
         : "Retailer";
-      toast.error(`Insufficient balance of ${userTypeText} for refund. Current balance: ₹${userDetails.currentBalance.toFixed(2)}`);
+      console.error("❌ Insufficient balance");
+      toast.error(`Insufficient balance of ${userTypeText} for revert. Current balance: ₹${userDetails.currentBalance.toFixed(2)}`);
       return;
     }
 
     const adminId = getAdminId();
+    console.log("Admin ID:", adminId);
+
     if (!adminId) {
+      console.error("❌ Admin ID not found");
       toast.error("Admin ID not found. Please login again.");
       return;
     }
 
     setIsProcessing(true);
     try {
-      const endpoint = getRefundEndpoint(userType);
+      const endpoint = getRevertEndpoint(userType);
       const token = localStorage.getItem("authToken");
+
+      console.log("🔗 Endpoint:", endpoint);
+      console.log("📦 Request Body:", {
+        admin_id: adminId,
+        phone_number: phoneNumber,
+        amount: amount,
+      });
+      console.log("🔑 Token exists:", !!token);
 
       const response = await fetch(endpoint, {
         method: "POST",
@@ -210,22 +233,31 @@ export default function RefundRequest() {
         }),
       });
 
+      console.log("📡 Response Status:", response.status);
+      console.log("📡 Response OK:", response.ok);
+
       const data = await response.json();
+      console.log("📦 Response Data:", data);
 
       if (response.ok && (data.status === "success" || data.success)) {
-        toast.success(data.msg || "Refund processed successfully");
+        console.log("✅ Revert successful!");
+        toast.success(data.msg || "Revert processed successfully");
         // Reset form
         setAmount("");
         setUserDetails(null);
         setPhoneNumber("");
       } else {
-        toast.error(data.msg || data.message || "Failed to process refund");
+        console.error("❌ Revert failed:", data);
+        console.error("Error message:", data.msg || data.message);
+        toast.error(data.msg || data.message || "Failed to process revert");
       }
     } catch (error) {
-      console.error("Error processing refund:", error);
-      toast.error("Failed to process refund");
+      console.error("❌ Exception caught:", error);
+      console.error("Error details:", JSON.stringify(error, null, 2));
+      toast.error("Failed to process revert");
     } finally {
       setIsProcessing(false);
+      console.log("=== REVERT PROCESS ENDED ===");
     }
   };
 
@@ -389,7 +421,7 @@ export default function RefundRequest() {
 
           {/* Submit Button */}
           <Button
-            onClick={handleRefund}
+            onClick={handleRevert}
             disabled={isProcessing || !userDetails || !amount || parseFloat(amount) <= 0}
             className="w-full paybazaar-gradient text-white"
           >
@@ -399,7 +431,7 @@ export default function RefundRequest() {
                 Processing Revert...
               </>
             ) : (
-              "Process Refund"
+              "Process Revert"
             )}
           </Button>
         </CardContent>

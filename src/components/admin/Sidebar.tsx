@@ -52,7 +52,7 @@ const navigation = [
 const transactionLogsSubMenu = [
   { name: "Admin Transaction", href: "/admin/logs", icon: FileText },
   { name: "Payout Transaction", href: "/admin/logs/payout", icon: FileText },
-  // { name: "Revert History", href: "/admin/logs/revert-history", icon: History },
+  { name: "Revert History", href: "/admin/funds/revert/history", icon: History },
   // { name: "Refund History", href: "/admin/logs/refund-history", icon: RefreshCcw },
 ];
 
@@ -76,7 +76,7 @@ const info = [
 const fundsSubMenu = [
   { name: "Fund Request", href: "/admin/funds/request", icon: Send },
   { name: "Revert Request", href: "/admin/funds/revert", icon: RotateCcw },
-  // { name: "Refund", href: "/admin/funds/refund", icon: RefreshCcw },
+  { name: "Refund", href: "/admin/funds/refund", icon: RefreshCcw },
 ];
 
 interface SidebarProps {
