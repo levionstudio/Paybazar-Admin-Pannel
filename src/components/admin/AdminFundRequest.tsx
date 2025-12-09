@@ -44,7 +44,8 @@ export function FundRequest() {
   const [loading, setLoading] = useState(true);
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
+  const itemsPerPage = 10;
+  const maxVisiblePages = 5;
 
   const getAdminId = (): string | null => {
     try {
@@ -219,6 +220,32 @@ export function FundRequest() {
   const endIndex = startIndex + itemsPerPage;
   const paginatedRequests = requests.slice(startIndex, endIndex);
 
+  // Calculate which page numbers to show (5 at a time)
+  const getVisiblePages = () => {
+    const currentGroup = Math.ceil(currentPage / maxVisiblePages);
+    const startPage = (currentGroup - 1) * maxVisiblePages + 1;
+    const endPage = Math.min(startPage + maxVisiblePages - 1, totalPages);
+    
+    return Array.from(
+      { length: endPage - startPage + 1 },
+      (_, i) => startPage + i
+    );
+  };
+
+  const visiblePages = getVisiblePages();
+  const canGoPrevGroup = currentPage > maxVisiblePages;
+  const canGoNextGroup = currentPage <= totalPages - maxVisiblePages;
+
+  const goToPrevGroup = () => {
+    const newPage = Math.max(1, currentPage - maxVisiblePages);
+    setCurrentPage(newPage);
+  };
+
+  const goToNextGroup = () => {
+    const newPage = Math.min(totalPages, currentPage + maxVisiblePages);
+    setCurrentPage(newPage);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -374,21 +401,43 @@ export function FundRequest() {
               >
                 Previous
               </Button>
+              
+              {canGoPrevGroup && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={goToPrevGroup}
+                  className="w-10"
+                >
+                  ...
+                </Button>
+              )}
+
               <div className="flex items-center gap-1">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                  (page) => (
-                    <Button
-                      key={page}
-                      variant={currentPage === page ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setCurrentPage(page)}
-                      className="w-10"
-                    >
-                      {page}
-                    </Button>
-                  )
-                )}
+                {visiblePages.map((page) => (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setCurrentPage(page)}
+                    className="w-10"
+                  >
+                    {page}
+                  </Button>
+                ))}
               </div>
+
+              {canGoNextGroup && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={goToNextGroup}
+                  className="w-10"
+                >
+                  ...
+                </Button>
+              )}
+
               <Button
                 variant="outline"
                 size="sm"
