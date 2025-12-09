@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -21,6 +21,7 @@ interface FundRequest {
   requester_id: string;
   requester_name: string;
   requester_type: string;
+  requester_unique_id: string;
   amount: string;
   bank_name: string;
   account_number: string;
@@ -29,20 +30,23 @@ interface FundRequest {
   utr_number: string;
   remarks: string;
   request_status: string;
+  request_date: string;
 }
 
 interface JWTPayload {
   data: { admin_id: string; [key: string]: any };
 }
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export function FundRequest() {
   const [requests, setRequests] = useState<FundRequest[]>([]);
   const [walletBalance, setWalletBalance] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
+  const [processingAction, setProcessingAction] = useState<{
+    requestId: string;
+    action: "accept" | "reject";
+  } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const maxVisiblePages = 5;
@@ -103,7 +107,22 @@ export function FundRequest() {
       const data = response.data.data;
 
       // ✅ Safely handle null or undefined
-      setRequests(Array.isArray(data) ? data : []);
+      const requestsList = Array.isArray(data) ? data : [];
+
+      // Sort by request_date (latest first)
+      const sortedRequests = [...requestsList].sort((a: FundRequest, b: FundRequest) => {
+        try {
+          const dateA = new Date(a.request_date);
+          const dateB = new Date(b.request_date);
+          const timeA = isNaN(dateA.getTime()) ? 0 : dateA.getTime();
+          const timeB = isNaN(dateB.getTime()) ? 0 : dateB.getTime();
+          return timeB - timeA; // Latest first
+        } catch {
+          return 0;
+        }
+      });
+
+      setRequests(sortedRequests);
     } catch (error: any) {
       // Silently handle error - just set empty array to show "No fund requests found"
       setRequests([]);
@@ -121,7 +140,7 @@ export function FundRequest() {
     const adminId = getAdminId();
     if (!adminId) return;
 
-    setProcessingIds((prev) => new Set(prev).add(requestId));
+    setProcessingAction({ requestId, action: "accept" });
 
     try {
       await axios.post(`${API_BASE_URL}/admin/accept/fund/request`, {
@@ -143,11 +162,7 @@ export function FundRequest() {
         variant: "destructive",
       });
     } finally {
-      setProcessingIds((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(requestId);
-        return newSet;
-      });
+      setProcessingAction(null);
     }
   };
 
@@ -155,7 +170,7 @@ export function FundRequest() {
     const adminId = getAdminId();
     if (!adminId) return;
 
-    setProcessingIds((prev) => new Set(prev).add(requestId));
+    setProcessingAction({ requestId, action: "reject" });
 
     try {
       await axios.get(`${API_BASE_URL}/admin/reject/fund/request/${requestId}`);
@@ -173,11 +188,7 @@ export function FundRequest() {
         variant: "destructive",
       });
     } finally {
-      setProcessingIds((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(requestId);
-        return newSet;
-      });
+      setProcessingAction(null);
     }
   };
 
@@ -187,7 +198,7 @@ export function FundRequest() {
         return (
           <Badge
             variant="outline"
-            className="bg-yellow-50 text-yellow-700 border-yellow-300"
+            className="bg-yellow-50 text-yellow-700 border-yellow-300 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800"
           >
             Pending
           </Badge>
@@ -196,7 +207,7 @@ export function FundRequest() {
         return (
           <Badge
             variant="outline"
-            className="bg-green-50 text-green-700 border-green-300"
+            className="bg-green-50 text-green-700 border-green-300 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800"
           >
             Approved
           </Badge>
@@ -205,13 +216,26 @@ export function FundRequest() {
         return (
           <Badge
             variant="outline"
-            className="bg-red-50 text-red-700 border-red-300"
+            className="bg-red-50 text-red-700 border-red-300 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800"
           >
             Rejected
           </Badge>
         );
       default:
         return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("en-IN", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    } catch {
+      return dateString;
     }
   };
 
@@ -225,7 +249,7 @@ export function FundRequest() {
     const currentGroup = Math.ceil(currentPage / maxVisiblePages);
     const startPage = (currentGroup - 1) * maxVisiblePages + 1;
     const endPage = Math.min(startPage + maxVisiblePages - 1, totalPages);
-    
+
     return Array.from(
       { length: endPage - startPage + 1 },
       (_, i) => startPage + i
@@ -246,6 +270,14 @@ export function FundRequest() {
     setCurrentPage(newPage);
   };
 
+  const isProcessing = (requestId: string, action: "accept" | "reject") => {
+    return processingAction?.requestId === requestId && processingAction?.action === action;
+  };
+
+  const isAnyProcessing = (requestId: string) => {
+    return processingAction?.requestId === requestId;
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -256,18 +288,20 @@ export function FundRequest() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Fund Requests</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+            Fund Requests
+          </h1>
+          <p className="text-sm md:text-base text-muted-foreground mt-1">
             Manage E-wallet fund requests
           </p>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 rounded-xl">
-          <div className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-wallet-bg border border-wallet-border">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-wallet-bg border border-wallet-border">
             <Wallet className="w-4 h-4 text-wallet-text" />
             <span className="text-sm font-semibold text-wallet-text">
-              ₹{walletBalance.toLocaleString()}
+              ₹{walletBalance.toLocaleString("en-IN")}
             </span>
           </div>
           <Button onClick={fetchRequests} variant="outline" size="sm">
@@ -279,120 +313,142 @@ export function FundRequest() {
 
       <Card>
         <CardContent className="p-0">
-          <div>
-            <div className="max-h-[600px] max-w-7xl overflow-y-auto   ">
-              <Table className="w-full">
-                <TableHeader className="sticky top-0 bg-background z-10">
+          <div className="overflow-x-auto">
+            <Table className="w-full">
+              <TableHeader className="sticky top-0 bg-background z-10">
+                <TableRow>
+                  <TableHead className="text-center whitespace-nowrap">
+                    Request Date
+                  </TableHead>
+                  <TableHead className="text-center whitespace-nowrap">
+                    Requester Name
+                  </TableHead>
+                
+                  <TableHead className="text-center whitespace-nowrap">
+                    Type
+                  </TableHead>
+                  <TableHead className="text-center whitespace-nowrap">
+                    Amount
+                  </TableHead>
+               
+                  <TableHead className="text-center whitespace-nowrap">
+                    UTR Number
+                  </TableHead>
+                  <TableHead className="text-center whitespace-nowrap">
+                    Remarks
+                  </TableHead>
+                  <TableHead className="text-center whitespace-nowrap">
+                    Status
+                  </TableHead>
+                  <TableHead className="text-center whitespace-nowrap">
+                    Actions
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginatedRequests.length === 0 ? (
                   <TableRow>
-                    <TableHead className="text-center whitespace-nowrap">
-                      Requester Name
-                    </TableHead>
-                    <TableHead className="text-center whitespace-nowrap">
-                      Type
-                    </TableHead>
-                    <TableHead className="text-center whitespace-nowrap">
-                      Amount
-                    </TableHead>
-                    <TableHead className="text-center whitespace-nowrap">
-                      UTR Number
-                    </TableHead>
-                    <TableHead className="text-center whitespace-nowrap">
-                      Remarks
-                    </TableHead>
-                    <TableHead className="text-center whitespace-nowrap">
-                      Status
-                    </TableHead>
-                    <TableHead className="text-center whitespace-nowrap">
-                      Actions
-                    </TableHead>
+                    <TableCell
+                      colSpan={10}
+                      className="text-center text-muted-foreground py-12"
+                    >
+                      <div className="flex flex-col items-center justify-center">
+                        <Wallet className="h-12 w-12 text-muted-foreground/50 mb-3" />
+                        <p className="text-base md:text-lg font-medium">
+                          No fund requests found
+                        </p>
+                        <p className="text-xs md:text-sm">
+                          Fund requests will appear here
+                        </p>
+                      </div>
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedRequests.length === 0 ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={11}
-                        className="text-center text-muted-foreground py-8"
-                      >
-                        No fund requests found
+                ) : (
+                  paginatedRequests.map((request) => (
+                    <TableRow key={request.request_id}>
+                      <TableCell className="text-center whitespace-nowrap text-xs sm:text-sm">
+                        {formatDate(request.request_date)}
+                      </TableCell>
+                      <TableCell className="font-medium text-center whitespace-nowrap text-xs sm:text-sm">
+                        {request.requester_name}
+                      </TableCell>
+                   
+                      <TableCell className="text-center">
+                        <Badge variant="secondary" className="text-xs">
+                          {request.requester_type}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-semibold text-center whitespace-nowrap text-xs sm:text-sm">
+                        ₹{parseFloat(request.amount).toLocaleString("en-IN", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </TableCell>
+                     
+                      <TableCell className="text-center font-mono whitespace-nowrap text-xs sm:text-sm">
+                        {request.utr_number}
+                      </TableCell>
+                      <TableCell className="text-center max-w-xs truncate text-xs sm:text-sm">
+                        {request.remarks || "-"}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {getStatusBadge(request.request_status)}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {request.request_status.toUpperCase() === "PENDING" ? (
+                          <div className="flex gap-2 justify-center whitespace-nowrap">
+                            <Button
+                              size="sm"
+                              variant="default"
+                              onClick={() => handleAccept(request.request_id)}
+                              disabled={isAnyProcessing(request.request_id)}
+                              className="min-w-[80px]"
+                            >
+                              {isProcessing(request.request_id, "accept") ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <>
+                                  <CheckCircle className="h-4 w-4 mr-1" />
+                                  Accept
+                                </>
+                              )}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleReject(request.request_id)}
+                              disabled={isAnyProcessing(request.request_id)}
+                              className="min-w-[80px]"
+                            >
+                              {isProcessing(request.request_id, "reject") ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <>
+                                  <XCircle className="h-4 w-4 mr-1" />
+                                  Reject
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">-</span>
+                        )}
                       </TableCell>
                     </TableRow>
-                  ) : (
-                    paginatedRequests.map((request) => (
-                      <TableRow key={request.request_id}>
-                        <TableCell className="font-medium text-center whitespace-nowrap">
-                          {request.requester_name}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <Badge variant="secondary">
-                            {request.requester_type}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="font-semibold text-center whitespace-nowrap">
-                          ₹{parseFloat(request.amount).toLocaleString("en-IN")}
-                        </TableCell>
-                        <TableCell className="text-center whitespace-nowrap">
-                          {request.utr_number}
-                        </TableCell>
-                        <TableCell className="text-center max-w-xs truncate">
-                          {request.remarks}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {getStatusBadge(request.request_status)}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {request.request_status.toUpperCase() ===
-                            "PENDING" && (
-                            <div className="flex gap-2 justify-center whitespace-nowrap">
-                              <Button
-                                size="sm"
-                                variant="default"
-                                onClick={() => handleAccept(request.request_id)}
-                                disabled={processingIds.has(request.request_id)}
-                              >
-                                {processingIds.has(request.request_id) ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                  <>
-                                    <CheckCircle className="h-4 w-4 mr-1" />
-                                    Accept
-                                  </>
-                                )}
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => handleReject(request.request_id)}
-                                disabled={processingIds.has(request.request_id)}
-                              >
-                                {processingIds.has(request.request_id) ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                  <>
-                                    <XCircle className="h-4 w-4 mr-1" />
-                                    Reject
-                                  </>
-                                )}
-                              </Button>
-                            </div>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
+                  ))
+                )}
+              </TableBody>
+            </Table>
           </div>
         </CardContent>
 
         {requests.length > 0 && (
-          <div className="flex items-center justify-between px-6 py-4 border-t">
-            <p className="text-sm text-muted-foreground">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 md:px-6 py-4 border-t">
+            <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
               Showing {startIndex + 1} to {Math.min(endIndex, requests.length)}{" "}
               of {requests.length} requests
             </p>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap justify-center">
               <Button
                 variant="outline"
                 size="sm"
@@ -401,7 +457,7 @@ export function FundRequest() {
               >
                 Previous
               </Button>
-              
+
               {canGoPrevGroup && (
                 <Button
                   variant="outline"
@@ -413,14 +469,14 @@ export function FundRequest() {
                 </Button>
               )}
 
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 flex-wrap">
                 {visiblePages.map((page) => (
                   <Button
                     key={page}
                     variant={currentPage === page ? "default" : "outline"}
                     size="sm"
                     onClick={() => setCurrentPage(page)}
-                    className="w-10"
+                    className="w-8 sm:w-10"
                   >
                     {page}
                   </Button>
