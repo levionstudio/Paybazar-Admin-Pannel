@@ -131,8 +131,6 @@ export default function GetAllMD() {
           ? res.data.data
           : res.data.data.master_distributors || [];
         
-        console.log("Raw distributors data:", distributors);
-        console.log("First distributor sample:", distributors[0]);
         
         setMasterDistributors(distributors);
         setCurrentPage(1);
@@ -164,7 +162,6 @@ export default function GetAllMD() {
       const token = localStorage.getItem("authToken");
       const url = `${import.meta.env.VITE_API_BASE_URL}/md/get/profile/${md.master_distributor_id}`;
 
-      console.log("Fetching MD profile from:", url);
       const response = await axios.get(url, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -172,12 +169,10 @@ export default function GetAllMD() {
         },
       });
 
-      console.log("MD profile response:", response.data);
 
       // Check for data in response
       if (response.data?.data?.master_distributor) {
         const mdData = response.data.data.master_distributor;
-        console.log("MD profile data:", mdData);
         
         setEditFormData({
           master_distributor_name: mdData.master_distributor_name || "",
@@ -193,7 +188,6 @@ export default function GetAllMD() {
           master_distributor_gender: mdData.master_distributor_gender || ""
         });
         
-        console.log("Form data set successfully");
         setSelectedMD(mdData);
         toast.success("Master Distributor profile loaded successfully");
       } else {
@@ -246,8 +240,6 @@ export default function GetAllMD() {
         master_distributor_gender: editFormData.master_distributor_gender,
       };
 
-      console.log("Updating MD profile at:", url);
-      console.log("Request body:", requestBody);
 
       const response = await axios.post(url, requestBody, {
         headers: {
@@ -256,8 +248,6 @@ export default function GetAllMD() {
         },
       });
 
-      console.log("Update response status:", response.status);
-      console.log("Update response data:", response.data);
 
       if (response.status >= 200 && response.status < 300) {
         const successMessage = response.data?.message || response.data?.msg || "Master Distributor updated successfully";
@@ -267,7 +257,6 @@ export default function GetAllMD() {
         setSelectedMD(null);
         
         setTimeout(async () => {
-          console.log("Refreshing MD list after update...");
           await fetchMasterDistributors();
           toast.success("List refreshed with latest data");
         }, 500);
@@ -278,7 +267,6 @@ export default function GetAllMD() {
         setSelectedMD(null);
         
         setTimeout(async () => {
-          console.log("Refreshing MD list after update...");
           await fetchMasterDistributors();
           toast.success("List refreshed with latest data");
         }, 500);

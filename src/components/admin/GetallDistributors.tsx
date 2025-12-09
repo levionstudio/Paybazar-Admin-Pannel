@@ -162,7 +162,6 @@ export default function GetAllDistributor() {
           setMasterDistributors([]);
         }
       } catch (error: any) {
-        console.error("Error fetching master distributors:", error);
         toast.error(error.response?.data?.message || "Failed to load master distributors");
         setMasterDistributors([]);
       } finally {
@@ -236,7 +235,6 @@ export default function GetAllDistributor() {
       const token = localStorage.getItem("authToken");
       const url = `${import.meta.env.VITE_API_BASE_URL}/distributor/get/profile/${distributor.distributor_id}`;
 
-      console.log("Fetching Distributor profile from:", url);
       const response = await axios.get(url, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -248,7 +246,6 @@ export default function GetAllDistributor() {
 
       if (response.data?.data?.distributor) {
         const distData = response.data.data.distributor;
-        console.log("Distributor profile data:", distData);
         
         setEditFormData({
           distributor_name: distData.distributor_name || "",
@@ -264,7 +261,6 @@ export default function GetAllDistributor() {
           distributor_gender: distData.distributor_gender || ""
         });
         
-        console.log("Form data set successfully");
         setSelectedDistributor(distData);
         toast.success("Distributor profile loaded successfully");
       } else {
@@ -317,8 +313,6 @@ export default function GetAllDistributor() {
         distributor_gender: editFormData.distributor_gender,
       };
 
-      console.log("Updating Distributor profile at:", url);
-      console.log("Request body:", requestBody);
 
       const response = await axios.post(url, requestBody, {
         headers: {
@@ -327,8 +321,6 @@ export default function GetAllDistributor() {
         },
       });
 
-      console.log("Update response status:", response.status);
-      console.log("Update response data:", response.data);
 
       if (response.status >= 200 && response.status < 300) {
         const successMessage = response.data?.message || response.data?.msg || "Distributor updated successfully";

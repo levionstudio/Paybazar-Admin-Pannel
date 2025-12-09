@@ -121,8 +121,6 @@ export default function GetAllUsers() {
     try {
       const token = localStorage.getItem("authToken");
       const url = `${import.meta.env.VITE_API_BASE_URL}/admin/get/user/${admin_id}`;
-
-      console.log("Requesting users from:", url);
       const res = await axios.get(url, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -130,8 +128,6 @@ export default function GetAllUsers() {
         },
         timeout: 15000,
       });
-
-      console.log("GET /admin/get/user response:", res.status, res.data);
 
       if (res.data?.status === "success" && res.data?.data) {
         const list = Array.isArray(res.data.data)
@@ -181,12 +177,9 @@ export default function GetAllUsers() {
         },
       });
 
-      console.log("User profile response:", response.data);
-
       // The API returns data in response.data.data.user
       if (response.data?.data?.user) {
         const userData = response.data.data.user;
-        console.log("User profile data:", userData);
         
         setEditFormData({
           user_name: userData.user_name || "",
@@ -201,18 +194,13 @@ export default function GetAllUsers() {
           user_date_of_birth: userData.user_date_of_birth || "",
           user_gender: userData.user_gender || ""
         });
-        
-        console.log("Form data set successfully");
         // Update selected user with full data
         setSelectedUser(userData);
         toast.success("User profile loaded successfully");
       } else {
-        console.error("Invalid response format:", response.data);
         toast.error("Failed to load user profile - invalid response format");
       }
     } catch (error: any) {
-      console.error("Error fetching user profile:", error);
-      console.error("Error response:", error.response?.data);
       toast.error(error.response?.data?.message || "Failed to load user profile");
     } finally {
       setIsFetchingProfile(false);
@@ -257,19 +245,12 @@ export default function GetAllUsers() {
         user_gender: editFormData.user_gender,
       };
 
-      console.log("Updating user profile at:", url);
-      console.log("Request body:", requestBody);
-
       const response = await axios.post(url, requestBody, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       });
-
-      console.log("Update response status:", response.status);
-      console.log("Update response data:", response.data);
-      console.log("Full response object:", response);
 
       // Check if request was successful (200-299 status code)
       if (response.status >= 200 && response.status < 300) {
@@ -283,7 +264,6 @@ export default function GetAllUsers() {
         
         // Wait for backend to commit changes, then refresh
         setTimeout(async () => {
-          console.log("Refreshing user list after update...");
           await fetchUsers();
           toast.success("User list refreshed with latest data");
         }, 500);
@@ -296,19 +276,13 @@ export default function GetAllUsers() {
         
         // Wait for backend to commit changes, then refresh
         setTimeout(async () => {
-          console.log("Refreshing user list after update...");
           await fetchUsers();
           toast.success("User list refreshed with latest data");
         }, 500);
       } else {
-        console.error("Update failed - response.data:", response.data);
-        console.error("Update failed - full response:", response);
         toast.error(response.data?.message || response.data?.msg || response.data?.error || "Failed to update user");
       }
     } catch (error: any) {
-      console.error("Error updating user:", error);
-      console.error("Error response:", error.response?.data);
-      console.error("Error status:", error.response?.status);
       toast.error(error.response?.data?.message || error.response?.data?.error || "Failed to update user");
     } finally {
       setIsUpdating(false);
