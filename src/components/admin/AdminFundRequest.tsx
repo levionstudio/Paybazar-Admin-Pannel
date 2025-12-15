@@ -103,8 +103,10 @@ export function FundRequest() {
     try {
       const response = await axios.get(
         `${API_BASE_URL}/admin/get/fund/requests/${adminId}`
+      
       );
       const data = response.data.data;
+        console.log(response.data.data);
 
       // ✅ Safely handle null or undefined
       const requestsList = Array.isArray(data) ? data : [];
