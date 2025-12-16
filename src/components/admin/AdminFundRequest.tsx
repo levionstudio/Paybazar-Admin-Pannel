@@ -106,7 +106,6 @@ export function FundRequest() {
       
       );
       const data = response.data.data;
-        console.log(response.data.data);
 
       // ✅ Safely handle null or undefined
       const requestsList = Array.isArray(data) ? data : [];

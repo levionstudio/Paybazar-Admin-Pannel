@@ -27,7 +27,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Loader2, RefreshCw, Eye } from "lucide-react";
+import { Loader2, RefreshCw, Eye, CheckCircle, XCircle } from "lucide-react";
 
 interface DecodedToken {
   data: {
@@ -46,6 +46,7 @@ interface User {
 }
 
 interface PayoutTransaction {
+  payout_transaction_id: string;
   transaction_id: string;
   phone_number: string;
   bank_name: string;
@@ -56,6 +57,7 @@ interface PayoutTransaction {
   transfer_type: string;
   transaction_status: string;
   transaction_date_and_time: string;
+  operator_transaction_id?: string;
 }
 
 const PayoutTransactionPage = () => {
@@ -66,10 +68,13 @@ const PayoutTransactionPage = () => {
   const [transactions, setTransactions] = useState<PayoutTransaction[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [loadingTransactions, setLoadingTransactions] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const [selectedTransaction, setSelectedTransaction] = useState<PayoutTransaction | null>(null);
+  const [selectedTransaction, setSelectedTransaction] =
+    useState<PayoutTransaction | null>(null);
+  const [operatorTxnId, setOperatorTxnId] = useState("");
 
   // Decode token to get admin_id
   useEffect(() => {
@@ -78,7 +83,7 @@ const PayoutTransactionPage = () => {
         const decoded: DecodedToken = jwtDecode(token);
         setAdminId(decoded?.data?.admin_id || "");
       } catch (error) {
-        console.error("Error decoding token:", error);
+        console.error("❌ Error decoding token:", error);
         toast.error("Invalid token. Please log in again.");
       }
     }
@@ -110,7 +115,7 @@ const PayoutTransactionPage = () => {
           setUsers([]);
         }
       } catch (error: any) {
-        console.error("Error fetching users:", error);
+        console.error("❌ Error fetching users:", error);
         setUsers([]);
       } finally {
         setLoadingUsers(false);
@@ -127,7 +132,9 @@ const PayoutTransactionPage = () => {
     setLoadingTransactions(true);
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/user/payout/get/transactions/${selectedUserId}`,
+        `${
+          import.meta.env.VITE_API_BASE_URL
+        }/user/payout/get/transactions/${selectedUserId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -138,22 +145,20 @@ const PayoutTransactionPage = () => {
 
       if (response.data.status === "success" && response.data.data) {
         const transactionsList = response.data.data.transactions || [];
-
-        // Sort transactions by date (latest first)
-        const sortedTransactions = transactionsList.sort((a: PayoutTransaction, b: PayoutTransaction) => {
-          const dateA = new Date(a.transaction_date_and_time).getTime();
-          const dateB = new Date(b.transaction_date_and_time).getTime();
-          return dateB - dateA; // Descending order (newest first)
-          
-        });
-        
+        const sortedTransactions = transactionsList.sort(
+          (a: PayoutTransaction, b: PayoutTransaction) => {
+            const dateA = new Date(a.transaction_date_and_time).getTime();
+            const dateB = new Date(b.transaction_date_and_time).getTime();
+            return dateB - dateA;
+          }
+        );
         setTransactions(sortedTransactions);
         toast.success(`Loaded ${sortedTransactions.length} transactions`);
       } else {
         setTransactions([]);
       }
     } catch (error: any) {
-      console.error("Error fetching transactions:", error);
+      console.error("❌ Error fetching transactions:", error);
       setTransactions([]);
     } finally {
       setLoadingTransactions(false);
@@ -169,35 +174,113 @@ const PayoutTransactionPage = () => {
     }
   }, [selectedUserId]);
 
- const getStatusBadge = (status: string) => {
+  // Update transaction status
+  const handleUpdateStatus = async (newStatus: "SUCCESS" | "FAILED" | "PENDING") => {
+    
+
+    if (!selectedTransaction || !token || !adminId) {
+      console.error(" Missing required data");
+      toast.error("Missing required data. Please refresh and try again.");
+      return;
+    }
+
+    const requestPayload = {
+      payout_transaction_id: selectedTransaction.payout_transaction_id,
+      status: newStatus,
+      operator_transaction_id: operatorTxnId.trim(),
+    };
+
+    const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/admin/update/payout/request`;
+    
+    setUpdatingStatus(true);
+    
+    try {
+      const response = await axios.post(apiUrl, requestPayload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+
+      const isSuccess = response.status === 200 && response.data?.status;
+
+      if (isSuccess) {
+        
+        toast.success(
+          `Transaction status updated to ${response.data.status.toUpperCase()} successfully`
+        );
+        
+        const updatedStatus = response.data.status;
+        const updatedOperatorTxnId = response.data.operator_transaction_id;
+        
+        setTransactions((prev) =>
+          prev.map((tx) =>
+            tx.payout_transaction_id === selectedTransaction.payout_transaction_id
+              ? {
+                  ...tx,
+                  transaction_status: updatedStatus,
+                  operator_transaction_id: updatedOperatorTxnId || tx.operator_transaction_id,
+                }
+              : tx
+          )
+        );
+
+        setSelectedTransaction({
+          ...selectedTransaction,
+          transaction_status: updatedStatus,
+          operator_transaction_id: updatedOperatorTxnId || selectedTransaction.operator_transaction_id,
+        });
+
+        setOperatorTxnId("");
+        setDetailsOpen(false);
+        fetchTransactions();
+      } else {
+        console.error(" API returned non-success status");
+        toast.error(response.data.message || "Failed to update transaction status");
+      }
+    } catch (error: any) {
+      console.error(" ERROR:", error.response?.data || error.message);
+      
+      const errorMessage = error.response?.data?.message 
+        || error.message 
+        || "Failed to update transaction status. Please try again.";
+      
+      toast.error(errorMessage);
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
     switch (status.toUpperCase()) {
       case "SUCCESS":
         return (
-          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
+          <Badge className="bg-green-500 hover:bg-green-600 text-white">
             Success
           </Badge>
         );
       case "PENDING":
         return (
-          <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">
+          <Badge className="bg-yellow-500 hover:bg-yellow-600 text-white">
             Pending
           </Badge>
         );
       case "FAILED":
         return (
-          <Badge variant="outline" className="bg-red-50 text-red-700 border-red-300">
+          <Badge className="bg-red-500 hover:bg-red-600 text-white">
             Failed
           </Badge>
         );
       case "REFUND":
         return (
-          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">
+          <Badge className="bg-blue-500 hover:bg-blue-600 text-white">
             Refunded
           </Badge>
         );
       default:
         return (
-          <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-300">
+          <Badge className="bg-gray-500 hover:bg-gray-600 text-white">
             {status}
           </Badge>
         );
@@ -228,6 +311,7 @@ const PayoutTransactionPage = () => {
 
   const handleViewDetails = (transaction: PayoutTransaction) => {
     setSelectedTransaction(transaction);
+    setOperatorTxnId(transaction.operator_transaction_id || "");
     setDetailsOpen(true);
   };
 
@@ -236,10 +320,8 @@ const PayoutTransactionPage = () => {
   const endIndex = startIndex + itemsPerPage;
   const paginatedTransactions = transactions.slice(startIndex, endIndex);
 
-  // Generate page numbers to show (max 10 visible page buttons)
   const getPageNumbers = () => {
     const maxVisiblePages = 10;
-    
     if (totalPages <= maxVisiblePages) {
       return Array.from({ length: totalPages }, (_, i) => i + 1);
     }
@@ -260,25 +342,33 @@ const PayoutTransactionPage = () => {
 
   if (loadingUsers) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto p-4 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Payout Transactions</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-3xl font-bold">Payout Transactions</h1>
+          <p className="text-muted-foreground">
             View payout transaction history by user (Latest first)
           </p>
         </div>
         {selectedUserId && (
-          <Button onClick={fetchTransactions} variant="outline" size="sm">
-            <RefreshCw className="h-4 w-4 mr-2" />
+          <Button
+            onClick={fetchTransactions}
+            disabled={loadingTransactions}
+            variant="outline"
+          >
+            {loadingTransactions ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <RefreshCw className="w-4 h-4 mr-2" />
+            )}
             Refresh
           </Button>
         )}
@@ -287,127 +377,112 @@ const PayoutTransactionPage = () => {
       {/* User Selection */}
       <Card>
         <CardContent className="pt-6">
-          <div className="space-y-2 max-w-md">
-            <Label htmlFor="user-select">Select User</Label>
-            <Select
-              value={selectedUserId}
-              onValueChange={setSelectedUserId}
-              disabled={loadingUsers}
-            >
-              <SelectTrigger id="user-select" className="w-full">
-                <SelectValue placeholder="Choose a user to view transactions" />
-              </SelectTrigger>
-              <SelectContent>
-                {loadingUsers ? (
-                  <div className="flex items-center justify-center p-4">
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    <span className="text-sm">Loading users...</span>
-                  </div>
-                ) : users.length === 0 ? (
-                  <div className="p-4 text-center text-sm text-muted-foreground">
-                    No users found
-                  </div>
-                ) : (
-                  users.map((user) => (
-                    <SelectItem key={user.user_id} value={user.user_id}>
-                      {user.user_name}
-                      {user.user_email && ` (${user.user_email})`}
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
-          </div>
+          <Label htmlFor="user-select" className="text-base font-semibold mb-2">
+            Select User
+          </Label>
+          <Select
+            value={selectedUserId}
+            onValueChange={setSelectedUserId}
+            disabled={loadingUsers}
+          >
+            <SelectTrigger id="user-select" className="w-full">
+              <SelectValue placeholder="Choose a user to view transactions" />
+            </SelectTrigger>
+            <SelectContent>
+              {loadingUsers ? (
+                <div className="p-2 text-center text-sm text-muted-foreground">
+                  Loading users...
+                </div>
+              ) : users.length === 0 ? (
+                <div className="p-2 text-center text-sm text-muted-foreground">
+                  No users found
+                </div>
+              ) : (
+                users.map((user) => (
+                  <SelectItem key={user.user_id} value={user.user_id}>
+                    {user.user_name}
+                    {user.user_email && ` (${user.user_email})`}
+                  </SelectItem>
+                ))
+              )}
+            </SelectContent>
+          </Select>
         </CardContent>
       </Card>
 
       {/* Transactions Table */}
       {selectedUserId && (
         <Card>
-          <CardContent className="p-0">
-            {loadingTransactions ? (
-              <div className="flex items-center justify-center py-20">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table className="w-full">
-                  <TableHeader>
+          {loadingTransactions ? (
+            <div className="flex items-center justify-center p-12">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : (
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Transaction ID</TableHead>
+                    <TableHead>Phone Number</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Date & Time</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedTransactions.length === 0 ? (
                     <TableRow>
-                      <TableHead className="text-center whitespace-nowrap">
-                        Transaction ID
-                      </TableHead>
-                      <TableHead className="text-center whitespace-nowrap">
-                        Phone Number
-                      </TableHead>
-                      <TableHead className="text-center whitespace-nowrap">
-                        Amount
-                      </TableHead>
-                      <TableHead className="text-center whitespace-nowrap">
-                        Status
-                      </TableHead>
-                      <TableHead className="text-center whitespace-nowrap">
-                        Date & Time
-                      </TableHead>
-                      <TableHead className="text-center whitespace-nowrap">
-                        Actions
-                      </TableHead>
+                      <TableCell
+                        colSpan={7}
+                        className="text-center text-muted-foreground py-8"
+                      >
+                        No transactions found
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {paginatedTransactions.length === 0 ? (
-                      <TableRow>
-                        <TableCell
-                          colSpan={6}
-                          className="text-center text-muted-foreground py-8"
-                        >
-                          No transactions found
+                  ) : (
+                    paginatedTransactions.map((tx) => (
+                      <TableRow key={tx.payout_transaction_id}>
+                        <TableCell className="font-mono text-xs">
+                          {tx.transaction_id}
+                        </TableCell>
+                       
+                        <TableCell>{tx.phone_number}</TableCell>
+                        <TableCell className="font-semibold">
+                          ₹{formatAmount(tx.amount)}
+                        </TableCell>
+                        <TableCell>
+                          {getStatusBadge(tx.transaction_status)}
+                        </TableCell>
+                        <TableCell>
+                          {formatDate(tx.transaction_date_and_time)}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleViewDetails(tx)}
+                          >
+                            <Eye className="w-4 h-4 mr-1" />
+                            Show Details
+                          </Button>
                         </TableCell>
                       </TableRow>
-                    ) : (
-                      paginatedTransactions.map((tx) => (
-                        <TableRow key={tx.transaction_id}>
-                          <TableCell className="font-mono text-center whitespace-nowrap">
-                            {tx.transaction_id}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {tx.phone_number}
-                          </TableCell>
-                          <TableCell className="font-semibold text-center whitespace-nowrap">
-                            ₹{formatAmount(tx.amount)}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {getStatusBadge(tx.transaction_status)}
-                          </TableCell>
-                          <TableCell className="text-center whitespace-nowrap">
-                            {formatDate(tx.transaction_date_and_time)}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleViewDetails(tx)}
-                            >
-                              <Eye className="h-4 w-4 mr-2" />
-                              Show Details
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          )}
 
           {transactions.length > 0 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t">
-              <p className="text-sm text-muted-foreground">
-                Showing {startIndex + 1} to {Math.min(endIndex, transactions.length)} of{" "}
+            <div className="flex items-center justify-between px-6 py-4 border-t">
+              <div className="text-sm text-muted-foreground">
+                Showing {startIndex + 1} to{" "}
+                {Math.min(endIndex, transactions.length)} of{" "}
                 {transactions.length} transactions
-              </p>
-              <div className="flex gap-2 flex-wrap justify-center">
+              </div>
+              <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
                   size="sm"
@@ -416,7 +491,7 @@ const PayoutTransactionPage = () => {
                 >
                   Previous
                 </Button>
-                <div className="flex items-center gap-1 flex-wrap">
+                <div className="flex gap-1">
                   {getPageNumbers().map((page) => (
                     <Button
                       key={page}
@@ -447,110 +522,248 @@ const PayoutTransactionPage = () => {
 
       {/* Transaction Details Dialog */}
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Transaction Details</DialogTitle>
           </DialogHeader>
           {selectedTransaction && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <Label className="text-sm font-medium text-muted-foreground">
+            <div className="space-y-6">
+              {/* Status Update Section */}
+              <Card className="border-blue-200 bg-blue-50">
+                <CardContent className="pt-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold text-lg">Update Transaction Status</h3>
+                    <div className="text-sm">
+                      Current: {getStatusBadge(selectedTransaction.transaction_status)}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="operator-txn-id">
+                      Operator Transaction ID
+                      <span className="text-muted-foreground ml-1">(Optional)</span>
+                    </Label>
+                    <input
+                      id="operator-txn-id"
+                      type="text"
+                      value={operatorTxnId}
+                      onChange={(e) => setOperatorTxnId(e.target.value)}
+                      placeholder="Enter operator transaction ID"
+                      className="w-full mt-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Optional field - can be added or updated for any status
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3">
+                    <Button
+                      onClick={() => handleUpdateStatus("PENDING")}
+                      disabled={updatingStatus || selectedTransaction.transaction_status.toUpperCase() === "PENDING"}
+                      className="bg-yellow-600 hover:bg-yellow-700"
+                    >
+                      {updatingStatus ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <RefreshCw className="w-4 h-4 mr-2" />
+                      )}
+                      PENDING
+                    </Button>
+                    <Button
+                      onClick={() => handleUpdateStatus("SUCCESS")}
+                      disabled={updatingStatus || selectedTransaction.transaction_status.toUpperCase() === "SUCCESS"}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      {updatingStatus ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                      )}
+                      SUCCESS
+                    </Button>
+                    <Button
+                      onClick={() => handleUpdateStatus("FAILED")}
+                      disabled={updatingStatus || selectedTransaction.transaction_status.toUpperCase() === "FAILED"}
+                      variant="destructive"
+                    >
+                      {updatingStatus ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <XCircle className="w-4 h-4 mr-2" />
+                      )}
+                      FAILED
+                    </Button>
+                  </div>
+                  
+                  <p className="text-xs text-muted-foreground">
+                    You can change from any status to any other status. Current status button is disabled.
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Transaction Information */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-muted-foreground text-xs">
                     Transaction ID
                   </Label>
-                  <p className="font-mono text-sm">{selectedTransaction.transaction_id}</p>
+                  <p className="font-mono text-sm font-medium mt-1">
+                    {selectedTransaction.transaction_id}
+                  </p>
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-sm font-medium text-muted-foreground">
+
+             
+
+                {selectedTransaction.operator_transaction_id && (
+                  <div className="col-span-2">
+                    <Label className="text-muted-foreground text-xs">
+                      Operator Transaction ID
+                    </Label>
+                    <p className="font-mono text-sm font-medium mt-1">
+                      {selectedTransaction.operator_transaction_id}
+                    </p>
+                  </div>
+                )}
+
+                <div>
+                  <Label className="text-muted-foreground text-xs">
                     Phone Number
                   </Label>
-                  <p className="text-sm">{selectedTransaction.phone_number}</p>
+                  <p className="font-medium mt-1">
+                    {selectedTransaction.phone_number}
+                  </p>
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-sm font-medium text-muted-foreground">
+
+                <div>
+                  <Label className="text-muted-foreground text-xs">
                     Bank Name
                   </Label>
-                  <p className="text-sm">{selectedTransaction.bank_name}</p>
+                  <p className="font-medium mt-1">
+                    {selectedTransaction.bank_name}
+                  </p>
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-sm font-medium text-muted-foreground">
+
+                <div>
+                  <Label className="text-muted-foreground text-xs">
                     Beneficiary Name
                   </Label>
-                  <p className="text-sm">{selectedTransaction.beneficiary_name}</p>
+                  <p className="font-medium mt-1">
+                    {selectedTransaction.beneficiary_name}
+                  </p>
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-sm font-medium text-muted-foreground">
+
+                <div>
+                  <Label className="text-muted-foreground text-xs">
                     Account Number
                   </Label>
-                  <p className="text-sm">{selectedTransaction.account_number}</p>
+                  <p className="font-mono text-sm font-medium mt-1">
+                    {selectedTransaction.account_number}
+                  </p>
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-sm font-medium text-muted-foreground">
+
+                <div>
+                  <Label className="text-muted-foreground text-xs">
                     Amount
                   </Label>
-                  <p className="text-lg font-semibold text-green-600">
+                  <p className="font-semibold text-lg mt-1">
                     ₹{formatAmount(selectedTransaction.amount)}
                   </p>
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-sm font-medium text-muted-foreground">
+
+                <div>
+                  <Label className="text-muted-foreground text-xs">
                     Transfer Type
                   </Label>
-                  <p className="text-sm">{selectedTransaction.transfer_type}</p>
+                  <p className="font-medium mt-1">
+                    {selectedTransaction.transfer_type}
+                  </p>
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-sm font-medium text-muted-foreground">
+
+                <div>
+                  <Label className="text-muted-foreground text-xs">
                     Status
                   </Label>
-                  <div>{getStatusBadge(selectedTransaction.transaction_status)}</div>
+                  <div className="mt-1">
+                    {getStatusBadge(selectedTransaction.transaction_status)}
+                  </div>
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-sm font-medium text-muted-foreground">
+
+                <div className="col-span-2">
+                  <Label className="text-muted-foreground text-xs">
                     Date & Time
                   </Label>
-                  <p className="text-sm">
+                  <p className="font-medium mt-1">
                     {formatDate(selectedTransaction.transaction_date_and_time)}
                   </p>
                 </div>
               </div>
 
-              <div className="border-t pt-4">
-                <h3 className="font-semibold mb-3">Commission Breakdown</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="flex justify-between p-3 bg-secondary/50 rounded">
-                    <span className="text-sm font-medium">Admin Commission:</span>
-                    <span className="text-sm font-semibold">
-                      ₹{formatAmount((parseFloat(selectedTransaction.commission) * 0.2917).toString())}
-                    </span>
+              {/* Commission Breakdown */}
+              <Card className="bg-slate-50">
+                <CardContent className="pt-6">
+                  <h3 className="font-semibold mb-4">Commission Breakdown</h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">
+                        Admin Commission:
+                      </span>
+                      <span className="font-medium">
+                        ₹
+                        {formatAmount(
+                          (
+                            parseFloat(selectedTransaction.commission) * 0.2917
+                          ).toString()
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">
+                        MD Commission :
+                      </span>
+                      <span className="font-medium">
+                        ₹
+                        {formatAmount(
+                          (
+                            parseFloat(selectedTransaction.commission) * 0.0417
+                          ).toString()
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">
+                        Distributor Commission:
+                      </span>
+                      <span className="font-medium">
+                        ₹
+                        {formatAmount(
+                          (
+                            parseFloat(selectedTransaction.commission) * 0.1667
+                          ).toString()
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">
+                        Retailer Commission:
+                      </span>
+                      <span className="font-medium">
+                        ₹
+                        {formatAmount(
+                          (
+                            parseFloat(selectedTransaction.commission) * 0.5
+                          ).toString()
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex justify-between pt-2 border-t font-semibold">
+                      <span>Total Commission:</span>
+                      <span>
+                        ₹{formatAmount(selectedTransaction.commission)}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex justify-between p-3 bg-secondary/50 rounded">
-                    <span className="text-sm font-medium">MD Commission:</span>
-                    <span className="text-sm font-semibold">
-                      ₹{formatAmount((parseFloat(selectedTransaction.commission) * 0.0417).toString())}
-                    </span>
-                  </div>
-                  <div className="flex justify-between p-3 bg-secondary/50 rounded">
-                    <span className="text-sm font-medium">Distributor Commission:</span>
-                    <span className="text-sm font-semibold">
-                      ₹{formatAmount((parseFloat(selectedTransaction.commission) * 0.1667).toString())}
-                    </span>
-                  </div>
-                  <div className="flex justify-between p-3 bg-secondary/50 rounded">
-                    <span className="text-sm font-medium">Retailer Commission:</span>
-                    <span className="text-sm font-semibold">
-                      ₹{formatAmount((parseFloat(selectedTransaction.commission) * 0.50).toString())}
-                    </span>
-                  </div>
-                </div>
-                <div className="mt-3 p-3 bg-primary/10 rounded">
-                  <div className="flex justify-between">
-                    <span className="font-semibold">Total Commission:</span>
-                    <span className="font-bold text-lg">
-                      ₹{formatAmount(selectedTransaction.commission)}
-                    </span>
-                  </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             </div>
           )}
         </DialogContent>
