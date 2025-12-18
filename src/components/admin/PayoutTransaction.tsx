@@ -48,6 +48,7 @@ interface User {
 interface PayoutTransaction {
   payout_transaction_id: string;
   transaction_id: string;
+  distributor_id: string; // ✅ ADD THIS
   phone_number: string;
   bank_name: string;
   beneficiary_name: string;
@@ -59,6 +60,7 @@ interface PayoutTransaction {
   transaction_date_and_time: string;
   operator_transaction_id?: string;
 }
+
 
 const PayoutTransactionPage = () => {
   const token = localStorage.getItem("authToken");
@@ -144,6 +146,7 @@ const PayoutTransactionPage = () => {
       );
 
       if (response.data.status === "success" && response.data.data) {
+        console.log(response.data.data);
         const transactionsList = response.data.data.transactions || [];
         const sortedTransactions = transactionsList.sort(
           (a: PayoutTransaction, b: PayoutTransaction) => {
@@ -158,7 +161,7 @@ const PayoutTransactionPage = () => {
         setTransactions([]);
       }
     } catch (error: any) {
-      console.error("❌ Error fetching transactions:", error);
+      console.error("", error);
       setTransactions([]);
     } finally {
       setLoadingTransactions(false);
@@ -287,6 +290,7 @@ const PayoutTransactionPage = () => {
     }
   };
 
+
   const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString);
@@ -301,6 +305,66 @@ const PayoutTransactionPage = () => {
       return dateString;
     }
   };
+
+const DISTRIBUTOR_COMMISSION_MAP: Record<
+  string,
+  {
+    admin: number;
+    md: number;
+    distributor: number;
+    retailer: number;
+  }
+> = {
+  "4cd64ced-f620-4900-a0d4-a34292f5720c": {
+    admin:  0.25,
+    md: 0.05,
+    distributor: 0.20,
+    retailer: 0.50,
+  },
+  "32c4da17-0dd5-4ebd-80b9-52bffa8235b0": {
+    admin: 0.25,
+    md: 0.05,
+    distributor: 0.20,
+    retailer: 0.50,
+  },
+  "fc20cf02-5076-4564-858e-3c9f2ff5260a": {
+    admin: 0.25,
+    md: 0.05,
+    distributor: 0.20,
+    retailer: 0.50,
+  },
+  "158fb0c0-e3a5-404c-9b59-4014141402f5": {
+    admin: 0.25,
+    md: 0.05,
+    distributor: 0.20,
+    retailer: 0.50,
+  },
+};
+const commissionData = selectedTransaction
+  ? (() => {
+      const total = parseFloat(selectedTransaction.commission);
+
+      const split =
+        DISTRIBUTOR_COMMISSION_MAP[selectedTransaction.distributor_id];
+
+      return split
+        ? {
+            admin: total *split.admin,
+            md: total *split.md,
+            distributor: total *split.distributor,
+            retailer: total *split.retailer,
+            total,
+          }
+        : {
+            admin: total * 0.2917,
+            md: total * 0.0417,
+            distributor: total * 0.1667,
+            retailer: total * 0.5,
+            total,
+          };
+    })()
+  : null;
+
 
   const formatAmount = (amount: string) => {
     return parseFloat(amount).toLocaleString("en-IN", {
@@ -698,73 +762,41 @@ const PayoutTransactionPage = () => {
                 </div>
               </div>
 
-              {/* Commission Breakdown */}
-              <Card className="bg-slate-50">
-                <CardContent className="pt-6">
-                  <h3 className="font-semibold mb-4">Commission Breakdown</h3>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">
-                        Admin Commission:
-                      </span>
-                      <span className="font-medium">
-                        ₹
-                        {formatAmount(
-                          (
-                            parseFloat(selectedTransaction.commission) * 0.2917
-                          ).toString()
-                        )}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">
-                        MD Commission :
-                      </span>
-                      <span className="font-medium">
-                        ₹
-                        {formatAmount(
-                          (
-                            parseFloat(selectedTransaction.commission) * 0.0417
-                          ).toString()
-                        )}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">
-                        Distributor Commission:
-                      </span>
-                      <span className="font-medium">
-                        ₹
-                        {formatAmount(
-                          (
-                            parseFloat(selectedTransaction.commission) * 0.1667
-                          ).toString()
-                        )}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">
-                        Retailer Commission:
-                      </span>
-                      <span className="font-medium">
-                        ₹
-                        {formatAmount(
-                          (
-                            parseFloat(selectedTransaction.commission) * 0.5
-                          ).toString()
-                        )}
-                      </span>
-                    </div>
-                    <div className="flex justify-between pt-2 border-t font-semibold">
-                      <span>Total Commission:</span>
-                      <span>
-                        ₹{formatAmount(selectedTransaction.commission)}
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+          {commissionData && (
+  <Card className="bg-slate-50">
+    <CardContent className="pt-6">
+      <h3 className="font-semibold mb-4">Commission Breakdown</h3>
+
+      <div className="space-y-2 text-sm">
+        <div className="flex justify-between">
+          <span>Admin Commission:</span>
+          <span>₹{formatAmount(commissionData.admin.toString())}</span>
+        </div>
+
+        <div className="flex justify-between">
+          <span>MD Commission:</span>
+          <span>₹{formatAmount(commissionData.md.toString())}</span>
+        </div>
+
+        <div className="flex justify-between">
+          <span>Distributor Commission:</span>
+          <span>₹{formatAmount(commissionData.distributor.toString())}</span>
+        </div>
+
+        <div className="flex justify-between">
+          <span>Retailer Commission:</span>
+          <span>₹{formatAmount(commissionData.retailer.toString())}</span>
+        </div>
+
+        <div className="flex justify-between pt-2 border-t font-semibold">
+          <span>Total Commission:</span>
+          <span>₹{formatAmount(commissionData.total.toString())}</span>
+        </div>
+      </div>
+    </CardContent>
+  </Card>
+)}
+       </div>
           )}
         </DialogContent>
       </Dialog>
