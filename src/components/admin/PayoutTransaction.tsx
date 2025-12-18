@@ -85,8 +85,7 @@ const PayoutTransactionPage = () => {
         const decoded: DecodedToken = jwtDecode(token);
         setAdminId(decoded?.data?.admin_id || "");
       } catch (error) {
-        console.error("❌ Error decoding token:", error);
-        toast.error("Invalid token. Please log in again.");
+                toast.error("Invalid token. Please log in again.");
       }
     }
   }, [token]);
@@ -117,7 +116,6 @@ const PayoutTransactionPage = () => {
           setUsers([]);
         }
       } catch (error: any) {
-        console.error("❌ Error fetching users:", error);
         setUsers([]);
       } finally {
         setLoadingUsers(false);
@@ -146,7 +144,6 @@ const PayoutTransactionPage = () => {
       );
 
       if (response.data.status === "success" && response.data.data) {
-        console.log(response.data.data);
         const transactionsList = response.data.data.transactions || [];
         const sortedTransactions = transactionsList.sort(
           (a: PayoutTransaction, b: PayoutTransaction) => {
