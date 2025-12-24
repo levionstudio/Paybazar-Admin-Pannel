@@ -145,7 +145,6 @@ const PayoutTransactionPage = () => {
       );
 
       if (response.data.status === "success" && response.data.data) {
-        console.log(response.data.data);
         const transactionsList = response.data.data.transactions || [];
         const sortedTransactions = transactionsList.sort(
           (a: PayoutTransaction, b: PayoutTransaction) => {
