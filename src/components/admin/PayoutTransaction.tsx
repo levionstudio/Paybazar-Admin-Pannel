@@ -48,7 +48,8 @@ interface User {
 interface PayoutTransaction {
   payout_transaction_id: string;
   transaction_id: string;
-  distributor_id: string; // ✅ ADD THIS
+  user_id: string; 
+  distributor_id: string; 
   phone_number: string;
   bank_name: string;
   beneficiary_name: string;
@@ -144,6 +145,7 @@ const PayoutTransactionPage = () => {
       );
 
       if (response.data.status === "success" && response.data.data) {
+        console.log(response.data.data);
         const transactionsList = response.data.data.transactions || [];
         const sortedTransactions = transactionsList.sort(
           (a: PayoutTransaction, b: PayoutTransaction) => {
@@ -303,64 +305,66 @@ const PayoutTransactionPage = () => {
     }
   };
 
-const DISTRIBUTOR_COMMISSION_MAP: Record<
+const RetailerCommissionMap: Record<
   string,
   {
-    admin: number;
-    md: number;
-    distributor: number;
     retailer: number;
+    distributor: number;
+    md: number;
   }
 > = {
-  "4cd64ced-f620-4900-a0d4-a34292f5720c": {
-    admin:  0.25,
-    md: 0.05,
-    distributor: 0.20,
-    retailer: 0.50,
-  },
-  "32c4da17-0dd5-4ebd-80b9-52bffa8235b0": {
-    admin: 0.25,
-    md: 0.05,
-    distributor: 0.20,
-    retailer: 0.50,
-  },
-  "fc20cf02-5076-4564-858e-3c9f2ff5260a": {
-    admin: 0.25,
-    md: 0.05,
-    distributor: 0.20,
-    retailer: 0.50,
-  },
-  "158fb0c0-e3a5-404c-9b59-4014141402f5": {
-    admin: 0.25,
-    md: 0.05,
-    distributor: 0.20,
-    retailer: 0.50,
-  },
+  // Normal 1% users → retailer gets ₹5
+  "6ede16d1-7c4b-4cc0-9a04-2896d2273ff2": { retailer: 0.5, distributor: 0.2, md: 0.05 },
+  "ef9d9491-3024-4f39-8e42-28e20203e004": { retailer: 0.5, distributor: 0.2, md: 0.05 },
+  "a5e61077-418a-4792-8247-fae90e9d4a8d": { retailer: 0.5, distributor: 0.2, md: 0.05 },
+  "b1bb7498-561b-451c-b0b7-83f24a113175": { retailer: 0.5, distributor: 0.2, md: 0.05 },
+  "0b45ef0c-8214-4eff-abec-b33e10fdab1e": { retailer: 0.5, distributor: 0.2, md: 0.05 },
+  "9059e173-207f-4a7a-8986-b4291f5f9862": { retailer: 0.5, distributor: 0.2, md: 0.05 },
+  "c2576845-9399-4eca-b0ed-792883403ea7": { retailer: 0.5, distributor: 0.2, md: 0.05 },
+  "4c80845d-063a-40e9-8c5d-820223aefd25": { retailer: 0.5, distributor: 0.2, md: 0.05 },
+  "1aad7bf8-dce8-4946-a050-b160079d04f1": { retailer: 0.5, distributor: 0.2, md: 0.05 },
+  "c7856f40-de06-4313-845f-be18730d1e46": { retailer: 0.5, distributor: 0.2, md: 0.05 },
+  "408513e5-e1f7-4d37-8465-4746fdfa0aa8": { retailer: 0.5, distributor: 0.2, md: 0.05 },
+  "8522a1a8-7e2e-43f2-8b89-0e63fdee85af": { retailer: 0.5, distributor: 0.2, md: 0.05 },
+  "ca36d7a2-9f13-4997-88e1-7512d6355650": { retailer: 0.5, distributor: 0.2, md: 0.05 },
+  "fca6741b-e405-4c06-9ebb-3f1e9951c22c": { retailer: 0.45, distributor: 0.20, md: 0.10 },
+  "df2704ad-7cb1-4b28-a29d-866dfdded0ae": { retailer: 0.45, distributor: 0.20, md: 0.10 },
 };
-const commissionData = selectedTransaction
-  ? (() => {
-      const total = parseFloat(selectedTransaction.commission);
 
-      const split =
-        DISTRIBUTOR_COMMISSION_MAP[selectedTransaction.distributor_id];
 
-      return split
-        ? {
-            admin: total *split.admin,
-            md: total *split.md,
-            distributor: total *split.distributor,
-            retailer: total *split.retailer,
-            total,
-          }
-        : {
-            admin: total * 0.2917,
-            md: total * 0.0417,
-            distributor: total * 0.1667,
-            retailer: total * 0.5,
-            total,
-          };
-    })()
-  : null;
+const commissionData = (() => {
+  if (!selectedTransaction) return null;
+
+  const amount = Number(selectedTransaction.amount);
+  const isListedUser =
+    !!RetailerCommissionMap[selectedTransaction.user_id];
+
+  // 1% for listed, 1.2% for non-listed
+  const commissionRate = isListedUser ? 0.01 : 0.012;
+  const total = amount * commissionRate;
+
+  if (isListedUser) {
+    // ✅ LISTED USER (1%)
+    const split =
+      RetailerCommissionMap[selectedTransaction.user_id];
+
+    const retailer = total * split.retailer;     // 0.5
+    const distributor = total * split.distributor; // 0.2
+    const md = total * split.md;                 // 0.05
+    const admin = total - (retailer + distributor + md);
+
+    return { retailer, distributor, md, admin, total };
+  }
+
+  // ✅ NON-LISTED USER (1.2%)
+  return {
+    retailer: total * 0.5,      // ₹6 on ₹1000
+    distributor: total * 0.1667,// ₹2 on ₹1000
+    md: total * 0.0417,         // ₹0.5 on ₹1000
+    admin: total * 0.2917,      // ₹3.5 on ₹1000
+    total,
+  };
+})();
 
 
   const formatAmount = (amount: string) => {
