@@ -312,8 +312,7 @@ const RetailerCommissionMap: Record<
     md: number;
   }
 > = {
-  // Normal 1% users → retailer gets ₹5
-  "6ede16d1-7c4b-4cc0-9a04-2896d2273ff2": { retailer: 0.5, distributor: 0.2, md: 0.05 },
+"6ede16d1-7c4b-4cc0-9a04-2896d2273ff2": { retailer: 0.5, distributor: 0.2, md: 0.05 },
   "ef9d9491-3024-4f39-8e42-28e20203e004": { retailer: 0.5, distributor: 0.2, md: 0.05 },
   "a5e61077-418a-4792-8247-fae90e9d4a8d": { retailer: 0.5, distributor: 0.2, md: 0.05 },
   "b1bb7498-561b-451c-b0b7-83f24a113175": { retailer: 0.5, distributor: 0.2, md: 0.05 },
@@ -326,6 +325,22 @@ const RetailerCommissionMap: Record<
   "408513e5-e1f7-4d37-8465-4746fdfa0aa8": { retailer: 0.5, distributor: 0.2, md: 0.05 },
   "8522a1a8-7e2e-43f2-8b89-0e63fdee85af": { retailer: 0.5, distributor: 0.2, md: 0.05 },
   "ca36d7a2-9f13-4997-88e1-7512d6355650": { retailer: 0.5, distributor: 0.2, md: 0.05 },
+
+  "9abc983a-6751-4578-b091-782c20ca518c": { retailer: 0.5, distributor: 0.2, md: 0.05 },
+  "588f08ba-99c0-45d4-ad10-3e0ba2f0f5ba": { retailer: 0.5, distributor: 0.2, md: 0.05 },
+  "3038eb4b-df7e-40d7-806a-5b0e93e51e33": { retailer: 0.5, distributor: 0.2, md: 0.05 },
+  "d20d9650-6ddf-45bf-9267-01795e8301f3": { retailer: 0.5, distributor: 0.2, md: 0.05 },
+  "10161525-f8b6-4e09-9378-c8320c597c35": { retailer: 0.5, distributor: 0.2, md: 0.05 },
+  "e0edcd84-0783-4bbb-943f-7d50471d402c": { retailer: 0.5, distributor: 0.2, md: 0.05 },
+  "3e222ad0-33a0-4822-9f87-8c392ecb5cec": { retailer: 0.5, distributor: 0.2, md: 0.05 },
+  "5a5d9433-b2de-4d4c-a2ce-ef984b0fa3c1": { retailer: 0.5, distributor: 0.2, md: 0.05 },
+  "d25f700d-9186-4f4a-a410-8be16ee3ea35": { retailer: 0.5, distributor: 0.2, md: 0.05 },
+  "75e33916-4339-4f91-b2e3-6800a14da56f": { retailer: 0.5, distributor: 0.2, md: 0.05 },
+  "ea3b2b66-3042-4e1f-8aca-7c037dc70cc6": { retailer: 0.5, distributor: 0.2, md: 0.05 },
+  "e081e9b5-2674-4c76-8fe4-d7e97ed9c76e": { retailer: 0.5, distributor: 0.2, md: 0.05 },
+  "0ee30163-b777-4db8-a54f-968fd6334cda": { retailer: 0.5, distributor: 0.2, md: 0.05 },
+  
+
   "fca6741b-e405-4c06-9ebb-3f1e9951c22c": { retailer: 0.45, distributor: 0.20, md: 0.10 },
   "df2704ad-7cb1-4b28-a29d-866dfdded0ae": { retailer: 0.45, distributor: 0.20, md: 0.10 },
 };
