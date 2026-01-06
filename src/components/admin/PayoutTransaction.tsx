@@ -339,6 +339,17 @@ const RetailerCommissionMap: Record<
   "ea3b2b66-3042-4e1f-8aca-7c037dc70cc6": { retailer: 0.5, distributor: 0.2, md: 0.05 },
   "e081e9b5-2674-4c76-8fe4-d7e97ed9c76e": { retailer: 0.5, distributor: 0.2, md: 0.05 },
   "0ee30163-b777-4db8-a54f-968fd6334cda": { retailer: 0.5, distributor: 0.2, md: 0.05 },
+
+  "912bfe33-cc18-42a9-95e5-6601e9792d2e":{ retailer: 0.5, distributor: 0.2, md: 0.05 },
+  "e97abd42-3602-47e7-86c1-941849d5bfc7":{ retailer: 0.5, distributor: 0.2, md: 0.05 },
+  "cf315988-3a63-4e3e-a043-b82e29645a27":{ retailer: 0.5, distributor: 0.2, md: 0.05 },
+  "087adc59-29a6-40ee-9143-80d811e37691":{ retailer: 0.5, distributor: 0.2, md: 0.05 },
+  "44ca46d-b7aa-4075-8cc9-c5b1c728af51":{ retailer: 0.5, distributor: 0.2, md: 0.05 },
+  "cbc50485-4ff4-4670-bd00-d01071c0d44a":{ retailer: 0.5, distributor: 0.2, md: 0.05 },
+  "141a55fd-f8d6-4bb9-b079-7e33a0f4c103":{ retailer: 0.5, distributor: 0.2, md: 0.05 },
+  "71ebb8f6-9725-4b29-ab8d-2e18e905da0a":{ retailer: 0.5, distributor: 0.2, md: 0.05 },
+  "85f1bd2a-aa1a-4005-b19c-8423a0746789":{ retailer: 0.5, distributor: 0.2, md: 0.05 },
+  "91da3ca8-aa20-4584-9149-c2ebd624dcd7":{ retailer: 0.5, distributor: 0.2, md: 0.05 },
   
 
   "fca6741b-e405-4c06-9ebb-3f1e9951c22c": { retailer: 0.45, distributor: 0.20, md: 0.10 },
