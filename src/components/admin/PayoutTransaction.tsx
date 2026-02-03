@@ -358,8 +358,95 @@ const RetailerCommissionMap: Record<
 
   "fca6741b-e405-4c06-9ebb-3f1e9951c22c": { retailer: 0.45, distributor: 0.20, md: 0.10 },
   "df2704ad-7cb1-4b28-a29d-866dfdded0ae": { retailer: 0.45, distributor: 0.20, md: 0.10 },
+
 };
 
+// ===== ADMIN OVERRIDE COMMISSION (FROM DB TABLE) =====
+const ADMIN_USER_COMMISSION_MAP: Record<
+  string,
+  {
+    admin: number;
+    md: number;
+    distributor: number;
+    retailer: number;
+  }
+> = {
+  // 60% users
+  "912bfe33-cc18-42a9-95e5-6601e9792d2e": {
+    admin: 0.275,
+    md: 0.105,
+    distributor: 0.02,
+    retailer: 0.60,
+  },
+  "e97abd42-3602-47e7-86c1-941849d5bfc7": {
+    admin: 0.275,
+    md: 0.105,
+    distributor: 0.02,
+    retailer: 0.60,
+  },
+
+  // 50% users
+  "b1c09449-d5d1-49af-b4fa-319267b07ce2": {
+    admin: 0.43,
+    md: 0.05,
+    distributor: 0.02,
+    retailer: 0.50,
+  },
+  "6e8affb2-009d-4389-9fb9-384f90a3404c": {
+    admin: 0.43,
+    md: 0.05,
+    distributor: 0.02,
+    retailer: 0.50,
+  },
+  "90600cca-e776-4373-8bf2-3f19fdcc0cc4": {
+    admin: 0.43,
+    md: 0.05,
+    distributor: 0.02,
+    retailer: 0.50,
+  },
+  "6ef85c54-c2b5-48a0-b4d8-2f0080156906": {
+    admin: 0.43,
+    md: 0.05,
+    distributor: 0.02,
+    retailer: 0.50,
+  },
+  "e081e9b5-2674-4c76-8fe4-d7e97ed9c76e": {
+    admin: 0.43,
+    md: 0.05,
+    distributor: 0.02,
+    retailer: 0.50,
+  },
+  "9a61b72c-ab1b-4fae-96e3-934d2aa2a697": {
+    admin: 0.43,
+    md: 0.05,
+    distributor: 0.02,
+    retailer: 0.50,
+  },
+  "39324029-4f37-41a8-8fa1-596d1b71570a": {
+    admin: 0.43,
+    md: 0.05,
+    distributor: 0.02,
+    retailer: 0.50,
+  },
+  "2c86a6f7-a527-4151-a541-7fa22922a914": {
+    admin: 0.43,
+    md: 0.05,
+    distributor: 0.02,
+    retailer: 0.50,
+  },
+  "cb24bd56-6030-4fed-8751-efcd8b39bfa3": {
+    admin: 0.43,
+    md: 0.05,
+    distributor: 0.02,
+    retailer: 0.50,
+  },
+  "b113aaf0-4c51-4451-9adf-e38eca36bf5b": {
+    admin: 0.43,
+    md: 0.05,
+    distributor: 0.02,
+    retailer: 0.50,
+  },
+};
 
 const commissionData = (() => {
   if (!selectedTransaction) return null;
@@ -372,18 +459,31 @@ const commissionData = (() => {
   const commissionRate = isListedUser ? 0.01 : 0.012;
   const total = amount * commissionRate;
 
-  if (isListedUser) {
-    // ✅ LISTED USER (1%)
-    const split =
-      RetailerCommissionMap[selectedTransaction.user_id];
+// 1️⃣ ADMIN CONFIG USERS (from DB)
+if (ADMIN_USER_COMMISSION_MAP[selectedTransaction.user_id]) {
+  const split = ADMIN_USER_COMMISSION_MAP[selectedTransaction.user_id];
 
-    const retailer = total * split.retailer;     // 0.5
-    const distributor = total * split.distributor; // 0.2
-    const md = total * split.md;                 // 0.05
-    const admin = total - (retailer + distributor + md);
+  return {
+    retailer: total * split.retailer,
+    distributor: total * split.distributor,
+    md: total * split.md,
+    admin: total * split.admin,
+    total,
+  };
+}
 
-    return { retailer, distributor, md, admin, total };
-  }
+// 2️⃣ OLD LISTED USERS (keep old behavior)
+if (isListedUser) {
+  const split = RetailerCommissionMap[selectedTransaction.user_id];
+
+  const retailer = total * split.retailer;
+  const distributor = total * split.distributor;
+  const md = total * split.md;
+  const admin = total - (retailer + distributor + md);
+
+  return { retailer, distributor, md, admin, total };
+}
+
 
   // ✅ NON-LISTED USER (1.2%)
   return {
